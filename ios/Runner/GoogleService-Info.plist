@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>611949295104-opvd16ses841ai3jij8g2ug7hhek5b5q.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.611949295104-opvd16ses841ai3jij8g2ug7hhek5b5q</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBy-6hmnF6f6Ltvie3YCJjj0b1rLBEhbok</string>
+	<key>GCM_SENDER_ID</key>
+	<string>611949295104</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.hotfocus</string>
+	<key>PROJECT_ID</key>
+	<string>hotfocus-5411a</string>
+	<key>STORAGE_BUCKET</key>
+	<string>hotfocus-5411a.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:611949295104:ios:6cb5bdf81c205c6a6a0ae5</string>
+</dict>
+</plist>
