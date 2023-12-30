@@ -202,7 +202,7 @@ class AppStyle {
   static TextStyle txtInterRegular10 = TextStyle(
     color: ColorConstant.whiteA700,
     fontSize: getFontSize(
-      10,
+      12,
     ),
     fontFamily: 'Inter',
     fontWeight: FontWeight.w400,

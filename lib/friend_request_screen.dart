@@ -86,11 +86,11 @@ class _FollowRequestScreenState extends State<FollowRequestScreen> {
               itemBuilder: (context, index) {
                 return ListTile(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const MyProfileAboutScreen(),
-                      ),
-                    );
+                    // Navigator.of(context).push(
+                    //   MaterialPageRoute(
+                    //     builder: (context) => const MyProfileAboutScreen(),
+                    //   ),
+                    // );
                   },
                   trailing: CustomButton(
                     text: "Follow Back",

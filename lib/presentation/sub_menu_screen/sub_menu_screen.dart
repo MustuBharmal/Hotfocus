@@ -72,12 +72,13 @@ class _SubMenuScreenState extends State<SubMenuScreen> {
                 itemCount: _snapData.length + (_isLoading ? 1 : 0),
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int index) {
-                  if (index == _snapData.length - 1 && _isLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                  if (index == _snapData.length - 1) {
+                    index = 0;
                   } else {
                     return PostItem(
                         _visibility, _snapData[index].data(), index, _snapData);
                   }
+                  return null;
                 }),
             Padding(
                 padding: const EdgeInsets.all(20),

@@ -1,13 +1,30 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hotfocus/core/app_export.dart';
-import 'package:hotfocus/presentation/story_views_personal_screen/models/story_views_personal_model.dart';
+
 
 class StoryViewsPersonalController extends GetxController {
-  Rx<StoryViewsPersonalModel> storyViewsPersonalModelObj =
-      StoryViewsPersonalModel().obs;
+  Rx<List<String>> userIdList = Rx<List<String>>([]);
+
+  List<String> get userId => userIdList.value;
 
   @override
   void onReady() {
-    super.onReady();
+    userIdList.bindStream(getAllUserIdsStream());
+  }
+
+  Stream<List<String>> getAllUserIdsStream() {
+    return FirebaseFirestore.instance
+        .collection('stories')
+        .snapshots()
+        .map((QuerySnapshot<Map<String, dynamic>> querySnapshot) {
+      Set<String> userIds = <String>{};
+      for (var document in querySnapshot.docs) {
+        final userId = document.id;
+        userIds.add(userId);
+      }
+
+      return userIds.toList();
+    });
   }
 
   @override

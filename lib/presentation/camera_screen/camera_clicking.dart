@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:hotfocus/core/app_export.dart';
+
 import '../../widgets/custom_build_progress_indicator_widget.dart';
 
 import 'package:camera/camera.dart';
@@ -46,6 +48,38 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
       if (imageList.length == 2) {
         ui.Image mergedImage = await ImagesMergeHelper.margeImages(imageList);
         fileImage = await ImagesMergeHelper.imageToFile(mergedImage);
+        final tempImage = await ImageCropper().cropImage(
+            sourcePath: fileImage!.path,
+            aspectRatioPresets: Platform.isAndroid
+                ? [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ]
+                : [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio5x3,
+              CropAspectRatioPreset.ratio5x4,
+              CropAspectRatioPreset.ratio7x5,
+              CropAspectRatioPreset.ratio16x9
+            ],
+            uiSettings: [
+              AndroidUiSettings(
+                  toolbarTitle: "Image Cropper",
+                  toolbarColor: Colors.black,
+                  toolbarWidgetColor: Colors.white,
+                  initAspectRatio: CropAspectRatioPreset.original,
+                  lockAspectRatio: false),
+              IOSUiSettings(
+                title: "Image Cropper",
+              )
+            ]);
+        fileImage = File(tempImage!.path);
       }
       setState(() {
         if (imageList.length == 2) {
@@ -81,7 +115,6 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final deviceSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.grey.shade600,
       body: SingleChildScrollView(
@@ -91,15 +124,15 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
               Column(
                 children: [
                   SizedBox(
-                    width: deviceSize.width,
-                    height: deviceSize.height / 2,
+                    width: size.width,
+                    height: size.height/ 2,
                     child: _pickingUpCamera
                         ? ownCameraPreview(_upController)
                         : showingPictures(_selectedImage1),
                   ),
                   SizedBox(
-                    width: deviceSize.width,
-                    height: deviceSize.height / 2,
+                    width: size.width,
+                    height: size.height/ 2,
                     child: !_pickingUpCamera
                         ? ownCameraPreview(_downController)
                         : showingPictures(_selectedImage2),
@@ -306,6 +339,7 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
 
   Widget ownCameraPreview(controller) {
     return Container(
+      height: size.height,
       decoration:
           BoxDecoration(border: Border.all(color: Colors.blue, width: 5)),
       child: ClipRRect(

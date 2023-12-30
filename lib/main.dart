@@ -55,6 +55,7 @@ class _MyAppState extends State<MyApp> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.active) {
               if (snapshot.hasData) {
+
               } else if (snapshot.hasError) {
                 return const Center(
                   child: Text('Some error occurred'),

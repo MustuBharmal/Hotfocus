@@ -28,6 +28,7 @@ class ProfileImageWidget extends StatelessWidget {
             backgroundColor: Colors.black,
             child: CachedNetworkImage(
               imageUrl: profileUrl,
+              fit: BoxFit.fill,
             ),
           ),
         ));

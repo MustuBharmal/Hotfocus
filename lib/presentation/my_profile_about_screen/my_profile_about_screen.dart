@@ -9,6 +9,8 @@ import 'package:hotfocus/presentation/news_feed_main_screen/news_feed_main_scree
 import 'package:hotfocus/presentation/sign_up_screen/utils/utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:like_button/like_button.dart';
+import 'package:path/path.dart';
+import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../data/storage_methods.dart';
 import '../../friend_request_services.dart';
@@ -23,13 +25,15 @@ bool _isCurrentUser = false;
 FirebaseAuth _auth = FirebaseAuth.instance;
 
 class MyProfileAboutScreen extends StatefulWidget {
-  const MyProfileAboutScreen({super.key});
+  const MyProfileAboutScreen({Key? key}) : super(key: key);
 
   @override
   State<MyProfileAboutScreen> createState() => _MyProfileAboutScreenState();
 }
 
 class _MyProfileAboutScreenState extends State<MyProfileAboutScreen> {
+  String userid = FirebaseAuth.instance.currentUser!.uid;
+
   Widget view = Container();
   bool isLoading = true;
   String name = "";
@@ -49,10 +53,8 @@ class _MyProfileAboutScreenState extends State<MyProfileAboutScreen> {
   @override
   void initState() {
     super.initState();
-    _userStream = FirebaseFirestore.instance
-        .collection('users')
-        .doc(_auth.currentUser?.uid)
-        .snapshots();
+    _userStream =
+        FirebaseFirestore.instance.collection('users').doc(userid).snapshots();
     FirebaseFirestore.instance
         .collection('users')
         .doc(_auth.currentUser?.uid)
@@ -60,13 +62,13 @@ class _MyProfileAboutScreenState extends State<MyProfileAboutScreen> {
         .listen((currentUserData) {
       final List<dynamic> following = currentUserData.get('following') ?? [];
       setState(() {
-        _isFollowing = following.contains(_auth.currentUser?.uid);
-        _isCurrentUser = true;
+        _isFollowing = following.contains(userid);
+        _isCurrentUser = _auth.currentUser!.uid == userid;
       });
     });
     FirebaseFirestore.instance
         .collection('users')
-        .doc(_auth.currentUser?.uid)
+        .doc(userid)
         .snapshots()
         .listen((targetUserData) {
       final List<dynamic> friendRequests =
@@ -91,8 +93,7 @@ class _MyProfileAboutScreenState extends State<MyProfileAboutScreen> {
                 slivers: [
                   SliverPersistentHeader(
                     pinned: false,
-                    delegate: ProfileAppBar(
-                        _auth.currentUser!.uid, coverImage, profile_url),
+                    delegate: ProfileAppBar(userid, coverImage, profile_url),
                   ),
                   SliverFillRemaining(
                     hasScrollBody: false,
@@ -131,10 +132,10 @@ class _MyProfileAboutScreenState extends State<MyProfileAboutScreen> {
                                     fontWeight: FontWeight.normal,
                                   ),
                                 ),
-                                Spacer(),
+                                const Spacer(),
                                 Text(
                                   'Posts $post_count',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
                                     fontWeight: FontWeight.normal,
@@ -147,62 +148,29 @@ class _MyProfileAboutScreenState extends State<MyProfileAboutScreen> {
                       ),
                     ),
                   ),
-                  /* CustomScrollView(
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Container(
-                          height: 120,
-                          child: StreamBuilder<
-                              QuerySnapshot<Map<String, dynamic>>>(
-                            stream: FirebaseFirestore.instance
-                                .collection('stories')
-                                .snapshots(),
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-
-                              final documents = snapshot.data!.docs;
-                              return ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: documents.length,
-                                itemBuilder: (context, index) {
-                                  final documentData = documents[index].data();
-                                  return StoryWidgetItem(documentData, index);
-                                },
-                              );
-                            },
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                      child: SizedBox(
+                        height: size.height,
+                        child: WaterfallFlow.builder(
+                          itemCount: userPostsSnapshot.length,
+                          gridDelegate:
+                              const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 4.0,
+                            crossAxisSpacing: 4.0,
                           ),
+                          itemBuilder: (BuildContext context, int index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(2.0),
+                              child: PostItem(true, userPostsSnapshot[index].data(), index),
+                            );
+                          },
                         ),
                       ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                          child: Container(
-                            height: size.height,
-                            child: WaterfallFlow.builder(
-                              itemCount: _data.length,
-                              gridDelegate:
-                                  SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 4.0,
-                                crossAxisSpacing: 4.0,
-                              ),
-                              itemBuilder: (BuildContext context, int index) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(2.0),
-                                  child: PostItem(
-                                      true, _data[index].data(), index),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),*/
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -214,15 +182,13 @@ class _MyProfileAboutScreenState extends State<MyProfileAboutScreen> {
   }
 
   getSnapData() async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_auth.currentUser!.uid)
-        .get();
+    DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(userid).get();
 
     QuerySnapshot<Map<String, dynamic>> postsRef = await FirebaseFirestore
         .instance
         .collection('posts')
-        .where('uid', isEqualTo: _auth.currentUser!.uid)
+        // .where('uid', isEqualTo: userid)
         .orderBy('datePublished', descending: true)
         .get();
 
@@ -247,15 +213,15 @@ Future<void> _uploadCover(Uint8List file, String userid) async {
   final DocumentReference<Map<String, dynamic>> userRef =
       FirebaseFirestore.instance.collection('users').doc(userid);
   userRef.update({'coverImage': photoUrl});
-  // (context as Element).reassemble();
+  (context as Element).reassemble();
 }
 
 class ProfileAppBar extends SliverPersistentHeaderDelegate {
   final bottomHeight = 60;
   final extraRadius = 5;
-  String userid, coverImage, profile_url;
+  String userid, coverImage, profileUrl;
 
-  ProfileAppBar(this.userid, this.coverImage, this.profile_url);
+  ProfileAppBar(this.userid, this.coverImage, this.profileUrl);
 
   @override
   Widget build(context, shrinkOffset, overlapsContent) {
@@ -282,22 +248,22 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
               Transform.scale(
                 scale: 1.9 - clowsingRate,
                 alignment: Alignment.bottomCenter,
-                child: _Avatar(profile_url),
+                child: _Avatar(profileUrl),
               ),
-              Spacer(),
+              const Spacer(),
               Row(
                 children: [
                   StreamBuilder<DocumentSnapshot>(
                     stream: _userStream,
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
-                        return CircularProgressIndicator();
+                        return const CircularProgressIndicator();
                       }
                       if (_isCurrentUser) {
                         // Current user's profile, show edit profile button
                         return ElevatedButton(
                           onPressed: () {},
-                          child: Text('Edit Profile'),
+                          child: const Text('Edit Profile'),
                         );
                       }
 
@@ -313,7 +279,7 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                               FriendRequestService()
                                   .cancelFriendRequest(userid);
                             },
-                            child: Text('Cancel Request'),
+                            child: const Text('Cancel Request'),
                           );
                         } else if (_isFollowing) {
                           // Current user is following the target user, show unfollow button
@@ -321,7 +287,7 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                             onPressed: () {
                               FriendRequestService().unfollowUser(userid);
                             },
-                            child: Text('Unfollow'),
+                            child: const Text('Unfollow'),
                           );
                         } else {
                           // Current user is not following the target user, show follow button
@@ -329,7 +295,7 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                             onPressed: () {
                               FriendRequestService().sendFriendRequest(userid);
                             },
-                            child: Text('Send Request'),
+                            child: const Text('Send Request'),
                           );
                         }
                       } else if (_isFollowing) {
@@ -338,14 +304,14 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                           onPressed: () {
                             FriendRequestService().unfollowUser(userid);
                           },
-                          child: Text('Unfollow'),
+                          child: const Text('Unfollow'),
                         );
                       } else {
                         return ElevatedButton(
                           onPressed: () {
                             FriendRequestService().followUser(userid);
                           },
-                          child: Text('Follow'),
+                          child: const Text('Follow'),
                         );
                       }
                     },
@@ -359,14 +325,14 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                         : true,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => MessagesChatBoxScreen(
-                        //       userid: userid,
-                        //     ),
-                        //   ),
-                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MessagesChatBoxScreen(
+                              userid: userid,
+                            ),
+                          ),
+                        );
                       },
                       child: const Text('Message'),
                     ),
@@ -416,11 +382,11 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                           showDialog(
                               context: context,
                               builder: (context) => SimpleDialog(
-                                    title: const Text('Upload Cover Photo'),
+                                    title: Text('Upload Cover Photo'),
                                     children: <Widget>[
                                       SimpleDialogOption(
-                                          padding: const EdgeInsets.all(20),
-                                          child: const Text('Take a photo'),
+                                          padding: EdgeInsets.all(20),
+                                          child: Text('Take a photo'),
                                           onPressed: () async {
                                             Navigator.pop(context);
                                             Uint8List file = await pickCover(
@@ -429,8 +395,8 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                                             _uploadCover(file, userid);
                                           }),
                                       SimpleDialogOption(
-                                          padding: const EdgeInsets.all(20),
-                                          child: const Text('Choose from Gallery'),
+                                          padding: EdgeInsets.all(20),
+                                          child: Text('Choose from Gallery'),
                                           onPressed: () async {
                                             Navigator.of(context).pop();
                                             Uint8List file =
@@ -440,8 +406,8 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                                             _uploadCover(file, userid);
                                           }),
                                       SimpleDialogOption(
-                                        padding: const EdgeInsets.all(20),
-                                        child: const Text("Cancel"),
+                                        padding: EdgeInsets.all(20),
+                                        child: Text("Cancel"),
                                         onPressed: () {
                                           Navigator.pop(context);
                                         },
@@ -548,9 +514,9 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
 }
 
 class _Avatar extends StatelessWidget {
-  String profile_url;
+  final String profileUrl;
 
-  _Avatar(this.profile_url);
+  const _Avatar(this.profileUrl);
 
   @override
   Widget build(BuildContext context) {
@@ -562,7 +528,7 @@ class _Avatar extends StatelessWidget {
       ),
       child: CircleAvatar(
         radius: 10,
-        backgroundImage: NetworkImage(profile_url),
+        backgroundImage: NetworkImage(profileUrl),
       ),
     );
   }
@@ -615,19 +581,19 @@ Future<void> blockUser(
   showSnackBar(context, "You have blocked this user.");
 }
 
-// Future<bool> isBlocked(String blockedUserId, String userId) async {
-//   final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
-//   final blockedUserRef =
-//       FirebaseFirestore.instance.collection('users').doc(blockedUserId);
-//
-//   final userDoc = await userRef.get();
-//   final blockedUserDoc = await blockedUserRef.get();
-//
-//   final List<dynamic> blockedUsers = userDoc.get('blocked');
-//   final List<dynamic> userFollowing = userDoc.get('following');
-//
-//   return blockedUsers.contains(blockedUserId);
-// }
+Future<bool> isBlocked(String blockedUserId, String userId) async {
+  final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+  final blockedUserRef =
+      FirebaseFirestore.instance.collection('users').doc(blockedUserId);
+
+  final userDoc = await userRef.get();
+  final blockedUserDoc = await blockedUserRef.get();
+
+  final List<dynamic> blockedUsers = userDoc.get('blocked');
+  final List<dynamic> userFollowing = userDoc.get('following');
+
+  return blockedUsers.contains(blockedUserId);
+}
 
 class PostItem extends StatefulWidget {
   final bool _visibility;

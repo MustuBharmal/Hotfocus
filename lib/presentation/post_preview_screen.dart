@@ -11,7 +11,6 @@ import 'package:provider/provider.dart';
 import '../data/firestore_methods.dart';
 import '../data/providers/user_provider.dart';
 import '../routes/app_routes.dart';
-import 'news_feed_main_screen/widget/side_action_bar.dart';
 
 class PostPreviewScreen extends StatefulWidget {
   final File file;
@@ -29,8 +28,20 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Colors.black,
-        title: const Text('Post Preview'),
+        title: const Text(
+          'Post Preview',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -71,83 +82,6 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                         );
                       },
                     ),
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withOpacity(0.0),
-                              Colors.black.withOpacity(0.3),
-                              Colors.black.withOpacity(0.7),
-                            ],
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Row(
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(5, 0, 0, 8),
-                                  child: Flex(
-                                    direction: Axis.horizontal,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {},
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          children: [
-                                            const CircleAvatar(radius: 12),
-                                            const SizedBox(
-                                              width: 5,
-                                            ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                const Text(
-                                                  "Test",
-                                                  //snap.get('uname'),
-                                                  // style: AppStyle.txtInterRegular12WhiteA700,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                Text(
-                                                  caption,
-                                                ),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Spacer(),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Flex(
-                                    direction: Axis.horizontal,
-                                    children: [
-                                      SideActionBar(
-                                          true,
-                                          Provider.of<UserProvider>(context,
-                                                  listen: false)
-                                              .getUser),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -171,10 +105,10 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async{
                     final bytes = widget.file.readAsBytesSync();
                     showSnackBar(context, "POST IS UPLOADING");
-                    FireStoreMethods()
+                    await FireStoreMethods()
                         .uploadPost(
                       caption,
                       Uint8List.fromList(bytes),

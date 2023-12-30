@@ -9,9 +9,9 @@ import 'package:video_player/video_player.dart';
 import 'chip_widget.dart';
 
 class EditPhotoView extends StatefulWidget {
-  File file;
+  final File file;
 
-  EditPhotoView(this.file, {Key? key}) : super(key: key);
+  const EditPhotoView(this.file, {Key? key}) : super(key: key);
 
   @override
   State<EditPhotoView> createState() => _EditPhotoViewState();
@@ -24,6 +24,7 @@ class _EditPhotoViewState extends State<EditPhotoView> {
   var sat = 0.0;
   var selected = 0;
   bool isLoading = false;
+
   // Uint8List? _image = null;
   String caption = "test";
 
@@ -46,7 +47,7 @@ class _EditPhotoViewState extends State<EditPhotoView> {
           style: Theme.of(context)
               .textTheme
               .titleLarge!
-              .copyWith(fontWeight: FontWeight.w600),
+              .copyWith(fontWeight: FontWeight.w600, color: Colors.white,),
         ),
         leading: IconButton(
           onPressed: () {
@@ -55,6 +56,7 @@ class _EditPhotoViewState extends State<EditPhotoView> {
           icon: const Icon(
             Icons.arrow_back,
             size: 20,
+            color: Colors.white,
           ),
         ),
         actions: [
@@ -72,17 +74,21 @@ class _EditPhotoViewState extends State<EditPhotoView> {
                   ),
                 );
               },
-              icon: const Icon(Icons.check),
+              icon: const Icon(
+                Icons.check,
+                color: Colors.white,
+              ),
             ),
           )
         ],
       ),
       body: Container(
         decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30)),
-            color: Colors.black87),
+          borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30)),
+          color: Colors.black87,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -92,7 +98,7 @@ class _EditPhotoViewState extends State<EditPhotoView> {
                 children: [
                   p.extension(widget.file.path).toLowerCase() == ".jpg"
                       ? SizedBox(
-                          height: MediaQuery.of(context).size.height,
+                          height: MediaQuery.of(context).size.height* 0.55,
                           width: MediaQuery.of(context).size.width,
                           child: SimpleFX(
                             imageSource: Image.file(widget.file),
@@ -100,13 +106,16 @@ class _EditPhotoViewState extends State<EditPhotoView> {
                             hueRotation: hue,
                             saturation: sat,
                             filter: SFXFilters.sepia,
-                          ))
+                          ),
+                        )
                       : SizedBox(
                           height: MediaQuery.of(context).size.height * 0.55,
                           width: MediaQuery.of(context).size.width,
                           child: AspectRatio(
-                              aspectRatio: playerController.value.aspectRatio,
-                              child: VideoPlayer(playerController))),
+                            aspectRatio: playerController.value.aspectRatio,
+                            child: VideoPlayer(playerController),
+                          ),
+                        ),
                   Positioned.fill(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
