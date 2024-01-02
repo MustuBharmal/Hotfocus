@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
         UserProvider provider = Provider.of(context, listen: false);
         await provider.refreshUser();
-        Get.toNamed(AppRoutes.newsFeedMainScreen);
+        Get.offAndToNamed(AppRoutes.newsFeedMainScreen);
       }
     } catch (err) {
       showSnackBar(context, err.toString());

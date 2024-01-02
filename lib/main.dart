@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hotfocus/presentation/welcome_screen/welcome_screen.dart';
 import '../presentation/app_intro_screen/app_intro_screen.dart';
 
 import '../routes/app_routes.dart';
@@ -19,7 +20,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // await Firebase.initializeApp();
-  FirebaseApp app = await Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   cameras = await availableCameras();
@@ -53,26 +54,19 @@ class _MyAppState extends State<MyApp> {
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.active) {
-              if (snapshot.hasData) {
-
-              } else if (snapshot.hasError) {
-                return const Center(
-                  child: Text('Some error occurred'),
-                );
-              }
-            }
             if (snapshot.connectionState == ConnectionState.waiting) {
+              return  const AppIntroScreen();
+            }
+            if (snapshot.hasData) {
+              return const WelcomeScreen();
+            } else {
               return const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.blue,
-                ),
+                child: Text('Something went wrong'),
               );
             }
-            return const AppIntroScreen();
           },
         ),
-        initialRoute: AppRoutes.initialRoute,
+        initialRoute: AppRoutes.welcomeScreen,
         getPages: AppRoutes.pages,
       ),
     );

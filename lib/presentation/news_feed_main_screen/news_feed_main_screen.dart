@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:hotfocus/create_story_screen.dart';
+import 'package:hotfocus/widgets/custom_build_progress_indicator_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/firestore_methods.dart';
 import '../../data/providers/user_provider.dart';
 import '../../widgets/custom_feed_post_widget.dart';
-import '../camera_screen/camera_clicking.dart';
+import '../camera_screen/double_camera_clicking.dart';
 import '../my_profile_about_screen/my_profile_screen.dart';
 import '../story_views_personal_screen/controller/story_views_personal_controller.dart';
 import '../story_views_personal_screen/models/story_views_personal_model.dart';
@@ -26,161 +28,175 @@ class NewsFeedMainScreen extends StatefulWidget {
   State<NewsFeedMainScreen> createState() => _NewsFeedMainScreenState();
 }
 
-String name = "";
-String profileUrl = "";
-String bio = "";
-String followerCount = "";
-String followingCount = "";
-String postCount = "";
-String uid = "";
-
 class _NewsFeedMainScreenState extends State<NewsFeedMainScreen> {
   bool isAdLoaded = false;
+  bool _isLoading = false;
+
+  // String name = "";
+  // String profileUrl = "";
+  // String bio = "";
+  // String follower_count = "";
+  // String following_count = "";
+  // String post_count = "";
+  String uid = "";
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero).then(
-        (_) => Provider.of<UserProvider>(context, listen: false).refreshUser());
-    // _getData();
+    _getData();
+
+  }
+
+  Future<void> _getData() async {
+    uid = Provider.of<UserProvider>(context, listen: false).getUser.uid;
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: ColorConstant.black900,
-        appBar: AppBar(
-          toolbarHeight: getVerticalSize(60.00),
-          leadingWidth: 107,
-          leading: Container(
-            margin: const EdgeInsets.only(left: 20, top: 22, bottom: 11),
-            child: AppbarImage(
-              height: getVerticalSize(16.00),
-              width: getHorizontalSize(87.00),
-              svgPath: ImageConstant.imgHotFocusTypo,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              color: ColorConstant.whiteA700,
-              onPressed: onTapSearch,
-            ),
-            IconButton(
-              icon: const Icon(Icons.sms),
-              color: ColorConstant.whiteA700,
-              onPressed: onTapMenu,
-            ),
-            CustomImageView(onTap: onTapMenu),
-          ],
-          backgroundColor: Colors.black,
-        ),
-        body: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(
-                  height: 120,
-                  child: GetX<StoryViewsPersonalController>(
-                    init: Get.put<StoryViewsPersonalController>(
-                        StoryViewsPersonalController()),
-                    builder: (storyController) {
-                      return ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: storyController.userId.length,
-                        itemBuilder: (context, index) {
-                          final userId = storyController.userId[index];
-                          // print(userId);
-                          return StoryWidgetItem(userId);
-                        },
-                      );
-                    },
-                  )),
-            ),
-            const FeedPostWidget(),
-          ],
-        ),
-        floatingActionButton: SpeedDial(
-          animatedIconTheme: const IconThemeData(color: Colors.white),
-          animatedIcon: AnimatedIcons.menu_close,
-          overlayColor: Colors.black54,
-          backgroundColor: Colors.black54,
-          children: [
-            SpeedDialChild(
-                child: const Icon(Icons.account_box_rounded),
-                label: 'Profile',
-                onTap: () async {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ProfilePageScreen(),
-                    ),
-                  );
-                }),
-            SpeedDialChild(
-              child: const Icon(Icons.add_box_rounded),
-              label: 'Story',
-              //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
-              onTap: () {
-                /*Navigator.of(context).push(
+    return Provider.of<UserProvider>(context, listen: false).getUser == null
+        ? const CustomProgressIndicator()
+        : SafeArea(
+            child: Scaffold(
+              backgroundColor: ColorConstant.black900,
+              appBar: AppBar(
+                toolbarHeight: getVerticalSize(60.00),
+                leadingWidth: 107,
+                leading: Container(
+                  margin: const EdgeInsets.only(left: 20, top: 22, bottom: 11),
+                  child: AppbarImage(
+                    height: getVerticalSize(16.00),
+                    width: getHorizontalSize(87.00),
+                    svgPath: ImageConstant.imgHotFocusTypo,
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    color: ColorConstant.whiteA700,
+                    onPressed: onTapSearch,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.sms),
+                    color: ColorConstant.whiteA700,
+                    onPressed: onTapMenu,
+                  ),
+                  CustomImageView(onTap: onTapMenu),
+                ],
+                backgroundColor: Colors.black,
+              ),
+              body: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                        height: 120,
+                        child: GetX<StoryViewsPersonalController>(
+                          init: Get.put<StoryViewsPersonalController>(
+                              StoryViewsPersonalController()),
+                          builder: (storyController) {
+                            return ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: storyController.userId.length,
+                              itemBuilder: (context, index) {
+                                final userId = storyController.userId[index];
+                                // print(userId);
+                                return StoryWidgetItem(userId);
+                              },
+                            );
+                          },
+                        )),
+                  ),
+                  const FeedPostWidget(),
+                ],
+              ),
+              floatingActionButton: SpeedDial(
+                animatedIconTheme: const IconThemeData(color: Colors.white),
+                animatedIcon: AnimatedIcons.menu_close,
+                overlayColor: Colors.black54,
+                backgroundColor: Colors.black54,
+                children: [
+                  SpeedDialChild(
+                      child: const Icon(Icons.account_box_rounded),
+                      label: 'Profile',
+                      onTap: () async {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProfilePageScreen(uid),
+                          ),
+                        );
+                      }),
+                  SpeedDialChild(
+                      child: const Icon(Icons.add_box_rounded),
+                      label: 'Story',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const StoryCamera();
+                            },
+                          ),
+                        );
+                      }
+                      /* onTap: () {
+                      Navigator.of(context).push(
                       MyCustomAnimatedRoute(
                        // enterWidget: openCamera(),
                         enterWidget: openCamera(),
                       ),
-                    );*/
-                // Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (context) => StoriesEditor(
-                //               giphyKey: 'Zbo78aMaf5zjI9RrIG9m32HuVnzW9MyL',
-                //               middleBottomWidget: Container(),
-                //               onDone: (uri) {
-                //                 debugPrint(uri);
-                //                 //FireStoreMethods().uploadStory(uri,FirebaseAuth.instance.currentUser!.uid , username, profImage)
-                //               },
-                //             )));
-              },
+                    );
+                      // Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //         builder: (context) => StoriesEditor(
+                      //               giphyKey: 'Zbo78aMaf5zjI9RrIG9m32HuVnzW9MyL',
+                      //               middleBottomWidget: Container(),
+                      //               onDone: (uri) {
+                      //                 debugPrint(uri);
+                      //                 //FireStoreMethods().uploadStory(uri,FirebaseAuth.instance.currentUser!.uid , username, profImage)
+                      //               },
+                      //             )));
+                    },*/
+                      ),
+                  SpeedDialChild(
+                    child: const Icon(Icons.camera_alt),
+                    label: 'Double Camera',
+                    //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) {
+                          return const DoubleCameraScreen();
+                        },
+                      ));
+                    },
+                  ),
+                  SpeedDialChild(
+                    child: const Icon(Icons.camera_alt),
+                    label: 'Post',
+                    //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const OpenCamera()),
+                      );
+                    },
+                  ),
+                  SpeedDialChild(
+                      child: const Icon(Icons.notifications_none_outlined),
+                      label: 'Notifications',
+                      onTap: onTapNotification),
+                  SpeedDialChild(
+                    child: const Icon(Icons.connected_tv),
+                    label: 'Requests',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) {
+                          return const FollowRequestScreen();
+                        },
+                      ));
+                    },
+                  ),
+                ],
+              ),
             ),
-            SpeedDialChild(
-              child: const Icon(Icons.camera_alt),
-              label: 'Photo/Video Post',
-              //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    return const CameraClickingScreen();
-                  },
-                ));
-              },
-            ),
-            SpeedDialChild(
-              child: const Icon(Icons.camera_alt),
-              label: 'Post',
-              //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const OpenCamera()),
-                );
-              },
-            ),
-            SpeedDialChild(
-                child: const Icon(Icons.notifications_none_outlined),
-                label: 'Notifications',
-                onTap: onTapNotification),
-            SpeedDialChild(
-              child: const Icon(Icons.connected_tv),
-              label: 'Requests',
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    return const FollowRequestScreen();
-                  },
-                ));
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+          );
   }
 
   onTapRowPlus() {

@@ -103,10 +103,10 @@ class AppIntroScreen extends GetWidget<AppIntroController> {
   }
 
   onTapLogin() {
-    Get.toNamed(AppRoutes.loginScreen);
+    Get.offAndToNamed(AppRoutes.loginScreen);
   }
 
   onTapSignup() {
-    Get.toNamed(AppRoutes.signUpScreen);
+    Get.offAndToNamed(AppRoutes.signUpScreen);
   }
 }

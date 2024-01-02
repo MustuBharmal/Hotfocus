@@ -15,14 +15,14 @@ import 'package:merge_images/merge_images.dart';
 import '../../main.dart';
 import '../post_preview_screen.dart';
 
-class CameraClickingScreen extends StatefulWidget {
-  const CameraClickingScreen({Key? key}) : super(key: key);
+class DoubleCameraScreen extends StatefulWidget {
+  const DoubleCameraScreen({Key? key}) : super(key: key);
 
   @override
-  State<CameraClickingScreen> createState() => _CameraClickingScreenState();
+  State<DoubleCameraScreen> createState() => _DoubleCameraScreenState();
 }
 
-class _CameraClickingScreenState extends State<CameraClickingScreen> {
+class _DoubleCameraScreenState extends State<DoubleCameraScreen> {
   File? _selectedImage1;
   File? _selectedImage2;
   late Map<Permission, PermissionStatus> statuses;
@@ -140,8 +140,7 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
                 ],
               ),
               Positioned(
-                top: 330,
-                // bottom: 20,
+                top: size.height / 3 * 1.1,
                 left: 280,
                 right: 40,
                 child: Column(
@@ -171,8 +170,9 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
                           });
                         }
                       },
+                      backgroundColor: Colors.transparent,
                       shape: const CircleBorder(),
-                      child: const Icon(Icons.camera_alt_outlined),
+                      child: Image.asset('assets/images/camera_change.png',color: Colors.white,),
                     ),
                     const SizedBox(
                       height: 20,
@@ -191,8 +191,9 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
                           }
                         });
                       },
+                      backgroundColor: Colors.transparent,
                       shape: const CircleBorder(),
-                      child: const Icon(Icons.change_circle_outlined),
+                      child: Image.asset('assets/images/swap-screen.png',color: Colors.white,),
                     ),
                     const SizedBox(
                       height: 20,
@@ -202,8 +203,9 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
                       onPressed: () {
                         _imgFromGallery();
                       },
+                      backgroundColor: Colors.transparent,
                       shape: const CircleBorder(),
-                      child: const Icon(Icons.browse_gallery),
+                      child: Image.asset('assets/images/gallery.png',color: Colors.white,),
                     ),
                   ],
                 ),
@@ -212,7 +214,7 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
                 bottom: 40,
                 left: 10,
                 right: 10,
-                top: 750,
+                top: size.height * 0.86,
                 // capture button
                 child: FloatingActionButton(
                   onPressed: () async {
@@ -250,9 +252,9 @@ class _CameraClickingScreenState extends State<CameraClickingScreen> {
                       print(e);
                     }
                   },
-                  // backgroundColor: Colors.grey,
+                  backgroundColor: Colors.transparent,
                   shape: const CircleBorder(),
-                  child: const Icon(Icons.adjust_rounded),
+                  child: Image.asset('assets/images/send-image.png',color: Colors.white,scale: 1,),
                 ),
               ),
             ],

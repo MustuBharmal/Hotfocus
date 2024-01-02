@@ -28,11 +28,10 @@ class _MessageTileState extends State<MessageTile> {
   @override
   Widget build(BuildContext context) {
     var backgroundColor = widget.sentByMe ? Colors.blue : Colors.grey[900];
-    var alignment =
-        widget.sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final theme = Theme.of(context);
     var borderRadius = widget.sentByMe
         ? const BorderRadius.only(
-            topLeft: Radius.circular(12.0),
+            topLeft: Radius.circular(6.0),
             bottomLeft: Radius.circular(12.0),
             bottomRight: Radius.circular(12.0),
           )
@@ -41,45 +40,86 @@ class _MessageTileState extends State<MessageTile> {
             bottomLeft: Radius.circular(12.0),
             bottomRight: Radius.circular(12.0),
           );
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      padding: const EdgeInsets.only(right: 16),
-      child: Column(
-        crossAxisAlignment: alignment,
-        children: [
-          Text(
-            widget.sender,
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 12.0,
-            ),
-          ),
-          const SizedBox(height: 4.0),
-          Material(
-            borderRadius: borderRadius,
-            color: backgroundColor,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: widget.sentByMe
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: widget.sentByMe
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
                 children: [
-                  if (widget.imageUrl != null) _buildImageMessage(),
-                  if (widget.videoUrl != null)
-                    _buildVideoMessage(widget.videoUrl.toString()),
-                  if (widget.message.isNotEmpty)
-                    Text(
-                      widget.message,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.0,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: widget.sentByMe
+                          ? Colors.grey[300]
+                          : theme.colorScheme.secondary.withAlpha(200),
+                      borderRadius: BorderRadius.only(
+                        topLeft: widget.sentByMe
+                            ? Radius.zero
+                            : const Radius.circular(12),
+                        topRight: widget.sentByMe
+                            ? Radius.zero
+                            : const Radius.circular(12),
+                        bottomLeft: const Radius.circular(12),
+                        bottomRight: const Radius.circular(12),
                       ),
                     ),
+                    constraints: const BoxConstraints(maxWidth: 200),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 14,
+                    ),
+                    // Margin around the bubble.
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 12,
+                    ),
+                    child: Text(
+                      widget.message,
+                      style: TextStyle(
+                        color: widget.sentByMe
+                            ? Colors.black87
+                            : theme.colorScheme.onSecondary,
+                        fontSize: 12.0,
+                      ),
+                    ),
+                  ),
+                  // Material(
+                  //   borderRadius: borderRadius,
+                  //   color: backgroundColor,
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.all(8.0),
+                  //     child: Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.start,
+                  //       children: [
+                  //         if (widget.imageUrl != null) _buildImageMessage(),
+                  //         if (widget.videoUrl != null)
+                  //           _buildVideoMessage(widget.videoUrl.toString()),
+                  //         if (widget.message.isNotEmpty)
+                  //           Text(
+                  //             widget.message,
+                  //             style: const TextStyle(
+                  //               height: 1.3,
+                  //               color: Colors.white,
+                  //               fontSize: 18.0,
+                  //             ),
+                  //           ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -90,11 +130,6 @@ class _MessageTileState extends State<MessageTile> {
       width: 200.0,
       height: 200.0,
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   Widget _buildVideoMessage(String videoUrl) {

@@ -1,31 +1,35 @@
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:hotfocus/widgets/custom_build_progress_indicator_widget.dart';
+
+import '../../friend_request_services.dart';
+import '../messages_chat_box_screen/messages_chat_box_screen.dart';
+import '/widgets/custom_build_progress_indicator_widget.dart';
 import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:get/get.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 import '../../core/utils/size_utils.dart';
 import '../../data/storage_methods.dart';
-import '../../profile_update_screen.dart';
-import '../../routes/app_routes.dart';
+
 import '../../widgets/custom_single_post.dart';
-import '../news_feed_main_screen/news_feed_main_screen.dart';
 import '../sign_up_screen/utils/utils.dart';
 
-// late Stream<DocumentSnapshot> _userStream;
+late Stream<DocumentSnapshot> _userStream;
 bool _isFollowing = false;
 bool _hasSentRequest = false;
 bool _isCurrentUser = false;
 FirebaseAuth _auth = FirebaseAuth.instance;
 
 class ProfilePageScreen extends StatefulWidget {
-  const ProfilePageScreen({super.key});
+  const ProfilePageScreen(this.userId, {super.key});
+
+  final String userId;
+  static const routeName = '/profile-page-screen';
 
   @override
   State<ProfilePageScreen> createState() => _ProfilePageScreenState();
@@ -44,28 +48,30 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
   List followerCount = [];
   List followingCount = [];
   int postCount = 0;
-  String userId = '';
 
   List<DocumentSnapshot> userPostsSnapshot = List.empty();
 
   @override
   void initState() {
     super.initState();
-    userId = FirebaseAuth.instance.currentUser!.uid;
+    _userStream = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .snapshots();
     FirebaseFirestore.instance
         .collection('users')
-        .doc(_auth.currentUser?.uid)
+        .doc(widget.userId)
         .snapshots()
         .listen((currentUserData) {
       final List<dynamic> following = currentUserData.get('following') ?? [];
       setState(() {
-        _isFollowing = following.contains(_auth.currentUser?.uid);
-        _isCurrentUser = true;
+        _isFollowing = following.contains(widget.userId);
+        _isCurrentUser = widget.userId == _auth.currentUser?.uid;
       });
     });
     FirebaseFirestore.instance
         .collection('users')
-        .doc(_auth.currentUser?.uid)
+        .doc(widget.userId)
         .snapshots()
         .listen((targetUserData) {
       final List<dynamic> friendRequests =
@@ -92,15 +98,15 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
   getSnapData() async {
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
         .collection('users')
-        .doc(_auth.currentUser!.uid)
+        .doc(widget.userId)
         .get();
 
-    QuerySnapshot<Map<String, dynamic>> postsRef =
-        await FirebaseFirestore.instance
-            .collection('posts')
-            // .where('uid', isEqualTo: _auth.currentUser!.uid)
-            .orderBy('datePublished', descending: true)
-            .get();
+    QuerySnapshot<Map<String, dynamic>> postsRef = await FirebaseFirestore
+        .instance
+        .collection('posts')
+        .where('uid', isEqualTo: widget.userId)
+        .orderBy('datePublished', descending: true)
+        .get();
 
     setState(() {
       name = (snapshot.data() as Map<String, dynamic>)['uname'];
@@ -134,7 +140,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
               slivers: [
                 SliverPersistentHeader(
                   pinned: false,
-                  delegate: ProfileAppBar(userId, coverImage, profileUrl),
+                  delegate:
+                      ProfileAppBar(widget.userId, coverImage, profileUrl,name),
                 ),
                 SliverToBoxAdapter(
                   child: Stack(
@@ -149,65 +156,126 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.only(left: 20),
                                     margin: const EdgeInsets.only(right: 40),
-                                    child: const Column(
+                                    child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Founder of Hotlocus & Victor Path Optimistic Human Being',
+                                          bio,
                                           softWrap: true,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             overflow: TextOverflow.visible,
                                           ),
                                           maxLines: 3,
-                                        ),
-                                        Text(
-                                          '#shiningstar',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
                                 ),
                                 Container(
-                                  width: deviceSize.width / 3.2,
+                                  width: _isCurrentUser
+                                      ? deviceSize.width / 2.2
+                                      : deviceSize.width / 1.8,
                                   padding: const EdgeInsets.only(top: 60),
-                                  child: ElevatedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                        const Color(0xFF0062FF),
+                                  child: Row(
+                                    children: [
+                                      StreamBuilder<DocumentSnapshot>(
+                                        stream: _userStream,
+                                        builder: (context, snapshot) {
+                                          if (!snapshot.hasData) {
+                                            return const CircularProgressIndicator();
+                                          }
+                                          if (_isCurrentUser) {
+                                            // Current user's profile, show edit profile button
+                                            return ElevatedButton(
+                                              onPressed: () {},
+                                              child: const Text('Edit Profile'),
+                                            );
+                                          }
+
+                                          final userDoc = snapshot.data!;
+                                          final String accountStatus =
+                                              userDoc.get('account_status');
+
+                                          if (accountStatus == 'private') {
+                                            if (_hasSentRequest) {
+                                              // Current user has sent a friend request, show cancel request button
+                                              return ElevatedButton(
+                                                onPressed: () {
+                                                  FriendRequestService()
+                                                      .cancelFriendRequest(
+                                                          widget.userId);
+                                                },
+                                                child: const Text(
+                                                    'Cancel Request'),
+                                              );
+                                            } else if (_isFollowing) {
+                                              // Current user is following the target user, show unfollow button
+                                              return ElevatedButton(
+                                                onPressed: () {
+                                                  FriendRequestService()
+                                                      .unfollowUser(
+                                                          widget.userId);
+                                                },
+                                                child: const Text('Unfollow'),
+                                              );
+                                            } else {
+                                              // Current user is not following the target user, show follow button
+                                              return ElevatedButton(
+                                                onPressed: () {
+                                                  FriendRequestService()
+                                                      .sendFriendRequest(
+                                                          widget.userId);
+                                                },
+                                                child:
+                                                    const Text('Send Request'),
+                                              );
+                                            }
+                                          } else if (_isFollowing) {
+                                            // Current user is following the target user, show unfollow button
+                                            return ElevatedButton(
+                                              onPressed: () {
+                                                FriendRequestService()
+                                                    .unfollowUser(
+                                                        widget.userId);
+                                              },
+                                              child: const Text('Unfollow'),
+                                            );
+                                          } else {
+                                            return ElevatedButton(
+                                              onPressed: () {
+                                                FriendRequestService()
+                                                    .followUser(widget.userId);
+                                              },
+                                              child: const Text('Follow'),
+                                            );
+                                          }
+                                        },
                                       ),
-                                      foregroundColor:
-                                          MaterialStateProperty.all(
-                                              Colors.white),
-                                    ),
-                                    onPressed: () {},
-                                    child: const Text('Follow'),
-                                  ),
-                                ),
-                                Container(
-                                  padding:
-                                      const EdgeInsets.only(top: 60, right: 5),
-                                  margin: const EdgeInsets.only(left: 10),
-                                  child: ElevatedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                        Colors.grey,
+                                      const SizedBox(
+                                        width: 10,
                                       ),
-                                      foregroundColor:
-                                          MaterialStateProperty.all(
-                                              Colors.white),
-                                    ),
-                                    onPressed: () {},
-                                    child:
-                                        const Icon(Icons.chat_bubble_outline),
+                                      Visibility(
+                                        visible: !_isCurrentUser,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    MessagesChatBoxScreen(
+                                                  userid: widget.userId,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text('Message'),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -340,9 +408,9 @@ class _Avatar extends StatelessWidget {
 class ProfileAppBar extends SliverPersistentHeaderDelegate {
   final bottomHeight = 60;
   final extraRadius = 5;
-  String userid, coverImage, profileUrl;
+  String userid, coverImage, profileUrl, name;
 
-  ProfileAppBar(this.userid, this.coverImage, this.profileUrl);
+  ProfileAppBar(this.userid, this.coverImage, this.profileUrl, this.name);
 
   @override
   Widget build(context, shrinkOffset, overlapsContent) {
@@ -359,9 +427,9 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
     return Stack(
       children: [
         shrinkOffset == 350
-            ? Text(
-                'hello',
-                style: TextStyle(color: Colors.white),
+            ?  Text(
+                name,
+                style: const TextStyle(color: Colors.black),
               )
             : Stack(
                 children: [
@@ -375,7 +443,7 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                         opacity: opacity,
                         child: coverImage == ""
                             ? Image.asset(
-                                "assets/images/img_backgroundimage6.png",
+                                "assets/images/hotfocus.png",
                                 width: double.maxFinite,
                                 fit: BoxFit.cover,
                               )
@@ -398,7 +466,7 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                     right: 10,
                     child: Row(
                       children: [
-                        userid == FirebaseAuth.instance.currentUser!.uid
+                        _isCurrentUser
                             ? IconButton(
                                 onPressed: () {
                                   showDialog(
@@ -445,15 +513,17 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                                 ),
                               )
                             : Container(),
-                        IconButton(
-                          onPressed: () {
-                            showContextMenu(context);
-                          },
-                          icon: const Icon(
-                            Icons.more_vert,
-                            color: Colors.white,
-                          ),
-                        )
+                        _isCurrentUser
+                            ? Container()
+                            : IconButton(
+                                onPressed: () {
+                                  showOtherUserContextMenu(context);
+                                },
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  color: Colors.white,
+                                ),
+                              )
                       ],
                     ),
                   ),
@@ -475,31 +545,6 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                     child:
                         Opacity(opacity: opacity, child: _Avatar(profileUrl)),
                   ),
-                  // Row(
-                  //   children: [
-                  //     const SizedBox(
-                  //       width: 10,
-                  //     ),
-                  //     Visibility(
-                  //       visible: userid == FirebaseAuth.instance.currentUser!.uid
-                  //           ? false
-                  //           : true,
-                  //       child: ElevatedButton(
-                  //         onPressed: () {
-                  //           Navigator.push(
-                  //             context,
-                  //             MaterialPageRoute(
-                  //               builder: (context) => MessagesChatBoxScreen(
-                  //                 userid: userid,
-                  //               ),
-                  //             ),
-                  //           );
-                  //         },
-                  //         child: const Text('Message'),
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
                 ],
               ),
             ),
@@ -519,27 +564,15 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
       true;
 
-  void showContextMenu(BuildContext context) {
-    // final RenderBox overlay =
-    //     Overlay.of(context).context.findRenderObject() as RenderBox;
-
+  void showOtherUserContextMenu(BuildContext context) {
     // Show the context menu using the PopupMenuButton
     showMenu(
       context: context,
       position: const RelativeRect.fromLTRB(10.0, 0.0, 0.0, 0.0),
       items: [
-        const PopupMenuItem(
-          value: 1,
-          child: Text('Edit Profile'),
-        ),
-        const PopupMenuItem(
-          value: 2,
-          child: Text('Settings'),
-        ),
         PopupMenuItem(
-          value: 3,
-          enabled: FirebaseAuth.instance.currentUser!.uid == uid,
-          child: const Text('Block User'),
+          value: 1,
+          child: _isCurrentUser ? null : const Text('Block User'),
         ),
       ],
       elevation: 8.0,
@@ -548,16 +581,6 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
       if (value != null) {
         switch (value) {
           case 1:
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) {
-                return const ProfileUpdateScreen();
-              },
-            ));
-            break;
-          case 2:
-            Get.toNamed(AppRoutes.profileSettingsScreen);
-            break;
-          case 3:
             showDialog(
               context: context,
               builder: (context) => SimpleDialog(

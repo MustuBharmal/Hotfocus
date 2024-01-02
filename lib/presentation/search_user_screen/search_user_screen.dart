@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../messages_chat_box_screen/messages_chat_box_screen.dart';
+import '../my_profile_about_screen/my_profile_screen.dart';
 import '/data/models/User.dart';
 import '/widgets/custom_feed_post_widget.dart';
 
@@ -84,12 +85,10 @@ class _SearchScreenState extends State<SearchScreen> {
                           UserData user = _users[index];
                           return InkWell(
                             onTap: () {
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => MessagesChatBoxScreen(
-                                    userid: user.uid,
-                                  ),
+                                  builder: (context) => ProfilePageScreen(user.uid),
                                 ),
                               );
                             },
