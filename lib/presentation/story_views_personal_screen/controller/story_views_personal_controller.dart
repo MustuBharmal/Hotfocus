@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hotfocus/core/app_export.dart';
-
+import '/core/app_export.dart';
 
 class StoryViewsPersonalController extends GetxController {
   Rx<List<String>> userIdList = Rx<List<String>>([]);
@@ -22,10 +21,12 @@ class StoryViewsPersonalController extends GetxController {
         final userId = document.id;
         userIds.add(userId);
       }
-
+      print('${userIds.length} dummy2 vvvcvfffffff');
       return userIds.toList();
     });
   }
+
+
 
   @override
   void onClose() {

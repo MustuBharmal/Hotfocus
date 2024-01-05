@@ -16,8 +16,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     Future.delayed(
-      const Duration(microseconds: 3000),
-      () {
+      const Duration(seconds: 3),
+          () {
         if (FirebaseAuth.instance.currentUser != null) {
           Provider.of<UserProvider>(context, listen: false).refreshUser();
           Get.offNamedUntil(AppRoutes.newsFeedMainScreen, (route) => false);
@@ -44,10 +44,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomImageView(
-                  svgPath: ImageConstant.imgHotFocusLogo,
-                  height: getVerticalSize(122.00),
-                  width: getHorizontalSize(100.00),
-                  margin: getMargin(top: 300))
+            svgPath: ImageConstant.imgHotFocusLogo,
+            height: getVerticalSize(122.00),
+            width: getHorizontalSize(100.00),
+            margin: getMargin(top: 300),
+          )
               .animate()
               .fadeIn(duration: 600.ms)
               .scale(curve: Curves.easeIn, duration: 300.ms)

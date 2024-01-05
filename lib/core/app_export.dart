@@ -1,4 +1,4 @@
-export 'package:connectivity_plus/connectivity_plus.dart';
+// export 'package:connectivity_plus/connectivity_plus.dart';
 export 'package:get/get.dart';
 export 'package:hotfocus/core/errors/exceptions.dart';
 export 'package:hotfocus/core/utils/color_constant.dart';

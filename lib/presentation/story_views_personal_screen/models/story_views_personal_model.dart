@@ -4,45 +4,44 @@ class Story {
   final String uid;
   final String username;
   final String media;
-  // final likes;
   final String storyId;
-  // final DateTime datePublished;
+  final Timestamp datePublished;
   final String postUrl;
   final String profImage;
+  var viewed = [];
 
-  const Story({
+  Story({
     required this.uid,
     required this.username,
-    // required this.likes,
     required this.storyId,
-    // required this.datePublished,
+    required this.datePublished,
     required this.postUrl,
     required this.profImage,
     required this.media,
+    required this.viewed,
   });
 
   static Story fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
-print(snapshot['media']);
     return Story(
         uid: snapshot["uid"],
-        // likes: snapshot["likes"],
+        username: snapshot['username'],
         storyId: snapshot["storyId"],
-        // datePublished: snapshot["datePublished"],
-        username: snapshot["username"],
+        datePublished: snapshot["datePublished"],
         postUrl: snapshot['postUrl'],
         profImage: snapshot['profImage'],
-        media:'image');
+        media: snapshot['media'],
+        viewed: snapshot['viewed']);
   }
 
   Map<String, dynamic> toJson() => {
-    "uid": uid,
-    // "likes": likes,
-    "username": username,
-    "storyId": storyId,
-    // "datePublished": datePublished,
-    'postUrl': postUrl,
-    'profImage': profImage,
-    'media': media,
-  };
+        "uid": uid,
+        "username": username,
+        "storyId": storyId,
+        "datePublished": datePublished,
+        'postUrl': postUrl,
+        'profImage': profImage,
+        'media': media,
+        'viewed': viewed,
+      };
 }

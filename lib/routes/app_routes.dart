@@ -182,7 +182,7 @@ class AppRoutes {
     ),
     GetPage(
       name: notificationsScreen,
-      page: () => NotificationsScreen(),
+      page: () =>  NotificationsScreen(),
       bindings: [
         NotificationsBinding(),
       ],
@@ -196,7 +196,7 @@ class AppRoutes {
     ),
     GetPage(
       name: messagesSearchScreen,
-      page: () => MessagesSearchScreen(),
+      page: () => const MessagesSearchScreen(),
       bindings: [
         MessagesSearchBinding(),
       ],
@@ -210,7 +210,7 @@ class AppRoutes {
     ),
     GetPage(
       name: appNavigationScreen,
-      page: () => AppNavigationScreen(),
+      page: () => const AppNavigationScreen(),
       bindings: [
         AppNavigationBinding(),
       ],

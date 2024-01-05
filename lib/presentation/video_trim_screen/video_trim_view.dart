@@ -14,8 +14,20 @@ class VideoTrimView extends GetView<VideoTrimController> {
         backgroundColor: Colors.black,
         appBar: AppBar(
           backgroundColor: Colors.black,
-          title: const Text('Edit Video'),
+          title: const Text(
+            'Edit Video',
+            style: TextStyle(color: Colors.white),
+          ),
           centerTitle: true,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+          ),
         ),
         body: Padding(
           padding: const EdgeInsets.all(8.0),

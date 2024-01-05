@@ -10,6 +10,32 @@ import 'models/post.dart';
 class FireStoreMethods {
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
 
+  // Future<List<String>> getId() {
+  //   return FirebaseFirestore.instance.collection('stories').get().then((value) {
+  //     Set<String> userIds = <String>{};
+  //     for (var type in value.docs) {
+  //       userIds.add(type.id);
+  //     }
+  //     print('${userIds.length} dummy');
+  //     return userIds.toList();
+  //   });
+  // }
+  Stream<List<String>> getId() {
+    print('je;;p');
+    return FirebaseFirestore.instance
+        .collection('stories')
+        .snapshots()
+        .map((QuerySnapshot<Map<String, dynamic>> querySnapshot) {
+      Set<String> userIds = <String>{};
+      for (var document in querySnapshot.docs) {
+        final userId = document.id;
+        userIds.add(userId);
+      }
+      print('${userIds.length} dummy');
+      return userIds.toList();
+    });
+  }
+
   static Stream<List<Story>> streamStoriesForUser(String userId) {
     return FirebaseFirestore.instance
         .collection('stories')
@@ -27,6 +53,8 @@ class FireStoreMethods {
           username: data['username'],
           storyId: data['storyId'],
           profImage: data['profImage'],
+          datePublished: data['datePublished'],
+          viewed: data['viewed'],
         );
       }).toList();
 
@@ -84,7 +112,7 @@ class FireStoreMethods {
         username: username,
         likes: [],
         postId: postId,
-        datePublished: DateTime.now(),
+        datePublished: Timestamp.now(),
         postUrl: photoUrl,
         profImage: profImage,
       );
@@ -96,8 +124,8 @@ class FireStoreMethods {
     return res;
   }
 
-  Future<String> uploadStory(
-      Uint8List file, String uid, String username, String profImage) async {
+  Future<String> uploadStory(Uint8List file, String uid, String username,
+      String profImage, String media) async {
     // asking uid here because we dont want to make extra calls to firebase auth when we can just get from our state management
     String res = "Some error occurred";
     try {
@@ -107,14 +135,19 @@ class FireStoreMethods {
       Story story = Story(
         uid: uid,
         username: username,
-        // likes: [],
         storyId: storyId,
-        // datePublished: DateTime.now(),
+        datePublished: Timestamp.now(),
         postUrl: photoUrl,
         profImage: profImage,
-        media: 'image',
+        media: media,
+        viewed: [],
       );
-      _fireStore.collection('stories').doc(storyId).set(story.toJson());
+      // _fireStore
+      //     .collection('stories')
+      //     .doc(uid)
+      //     .collection('userStories')
+      //     .doc(storyId)
+      //     .set(story.toJson());
       res = "success";
     } catch (err) {
       res = err.toString();

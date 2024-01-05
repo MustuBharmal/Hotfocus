@@ -4,7 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hotfocus/presentation/notifications_screen/controller/notifications_controller.dart';
 import 'package:hotfocus/presentation/welcome_screen/welcome_screen.dart';
+import 'package:hotfocus/widgets/custom_build_progress_indicator_widget.dart';
 import '../presentation/app_intro_screen/app_intro_screen.dart';
 
 import '../routes/app_routes.dart';
@@ -18,8 +20,6 @@ List<CameraDescription> cameras = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // await Firebase.initializeApp();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -55,18 +55,20 @@ class _MyAppState extends State<MyApp> {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return  const AppIntroScreen();
+              return const CustomProgressIndicator();
             }
             if (snapshot.hasData) {
               return const WelcomeScreen();
-            } else {
+            }
+            if (snapshot.hasError) {
               return const Center(
                 child: Text('Something went wrong'),
               );
+            } else {
+              return const AppIntroScreen();
             }
           },
         ),
-        initialRoute: AppRoutes.welcomeScreen,
         getPages: AppRoutes.pages,
       ),
     );

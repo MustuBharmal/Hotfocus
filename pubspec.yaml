@@ -40,25 +40,19 @@ dependencies:
   firebase_auth: ^4.15.3
   cloud_firestore: ^4.13.6
   firebase_storage: ^11.5.6
-  uuid: ^4.2.2
   get: ^4.6.6
-  shared_preferences: ^2.2.2
-  connectivity_plus: ^5.0.2
   sign_button: ^2.0.6
-  flutter_signin_button: ^2.0.0
   flutter_animate: ^4.3.0
   image_picker: ^1.0.5
   cached_network_image: ^3.3.0
   flutter_svg: ^2.0.9
   flutter_switch: ^0.3.2
   camera: ^0.10.5+7
-  flutter_native_image: ^0.0.6+1
   video_player: ^2.8.1
   like_button: ^2.0.5
   flutter_speed_dial: ^7.0.0
   waterfall_flow: ^3.0.3
   flutter_staggered_grid_view: ^0.7.0
-#  stories_editor: ^0.2.2
   image_cropper: ^4.0.1
   percent_indicator: ^4.2.3
   google_mobile_ads: ^4.0.0
@@ -70,8 +64,6 @@ dependencies:
   merge_images: ^2.0.0-nullsafety
   permission_handler: ^11.1.0
   flutter_image_compress: ^2.1.0
-#  stories_editor: ^0.2.2
-#  stories_editor: 0.1.8
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -97,12 +89,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/images/hotfocus.png
-    - assets/images/chat.png
-    - assets/images/heart.png
-    - assets/images/send.png
-    - assets/images/img_user.svg
-    - assets/images/img_hotfocuslogo.svg
   fonts:
     - family: Inter
       fonts:

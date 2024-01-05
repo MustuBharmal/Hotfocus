@@ -3,15 +3,14 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hotfocus/core/app_export.dart';
-import 'package:hotfocus/edit_photo_view.dart';
-import 'package:hotfocus/main.dart';
-import 'package:hotfocus/presentation/custom_camera_animation.dart';
-import 'package:hotfocus/presentation/post_preview_screen.dart';
+import '/core/app_export.dart';
+import '/main.dart';
+import '/presentation/custom_camera_animation.dart';
+import '/presentation/post_preview_screen.dart';
+import '/story_preview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-
 
 class StoryCamera extends StatefulWidget {
   const StoryCamera({Key? key}) : super(key: key);
@@ -20,7 +19,8 @@ class StoryCamera extends StatefulWidget {
   State<StoryCamera> createState() => _StoryCameraState();
 }
 
-class _StoryCameraState extends State<StoryCamera> with TickerProviderStateMixin {
+class _StoryCameraState extends State<StoryCamera>
+    with TickerProviderStateMixin {
   bool backPressed = false;
 
   late AnimationController controllerToIncreasingCurve;
@@ -52,8 +52,8 @@ class _StoryCameraState extends State<StoryCamera> with TickerProviderStateMixin
         curve: Curves.fastLinearToSlowEaseIn,
       ),
     )..addListener(() {
-      setState(() {});
-    });
+        setState(() {});
+      });
 
     animationToDecreasingCurve = Tween<double>(begin: 0, end: 200).animate(
       CurvedAnimation(
@@ -61,8 +61,8 @@ class _StoryCameraState extends State<StoryCamera> with TickerProviderStateMixin
         curve: Curves.fastLinearToSlowEaseIn,
       ),
     )..addListener(() {
-      setState(() {});
-    });
+        setState(() {});
+      });
 
     controllerToIncreasingCurve.forward();
 
@@ -90,13 +90,13 @@ class _StoryCameraState extends State<StoryCamera> with TickerProviderStateMixin
     CameraDescription newDescription;
     if (lensDirection == CameraLensDirection.back) {
       newDescription = cameras.firstWhere(
-              (camera) => camera.lensDirection == CameraLensDirection.front);
+          (camera) => camera.lensDirection == CameraLensDirection.front);
     } else {
       newDescription = cameras.firstWhere(
-              (camera) => camera.lensDirection == CameraLensDirection.back);
+          (camera) => camera.lensDirection == CameraLensDirection.back);
     }
     final newController =
-    CameraController(newDescription, ResolutionPreset.high);
+        CameraController(newDescription, ResolutionPreset.high);
     await newController.initialize();
     await _initializeControllerFuture;
     setState(() {
@@ -159,7 +159,7 @@ class _StoryCameraState extends State<StoryCamera> with TickerProviderStateMixin
       XFile? xFile = await _cameraController.takePicture();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => EditPhotoView(File(xFile.path)),
+          builder: (_) => StoryPreviewScreen(File(xFile.path)),
         ),
       );
     } catch (e) {
@@ -176,38 +176,97 @@ class _StoryCameraState extends State<StoryCamera> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        backPressed = true;
-        controllerToDecreasingCurve.forward();
-        return true;
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(
-          backPressed == false
-              ? animationToIncreasingCurve.value
-              : animationToDecreasingCurve.value,
-        ),
-        child: Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            // brightness: Brightness.dark,
-            elevation: 0,
-            backgroundColor: Colors.transparent,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(
+        backPressed == false
+            ? animationToIncreasingCurve.value
+            : animationToDecreasingCurve.value,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          // brightness: Brightness.dark,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
           ),
-          body: Column(children: [
-            SizedBox(
-                height: MediaQuery.of(context).size.height * 0.70,
-                child: CameraPreview(_cameraController)),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                height: 150,
-                width: double.infinity,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
+        ),
+        body: Column(children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.70,
+            child: CameraPreview(_cameraController),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SizedBox(
+              height: 150,
+              width: double.infinity,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Container(
+                    height: 50,
+                    width: 50,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    child: GestureDetector(
+                      onTap: _toggleCamera,
+                      child: const Icon(
+                        Icons.cameraswitch,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _takePhoto(context),
+                    onLongPressStart: (_) => _startVideoRecording(),
+                    onLongPressEnd: (_) => _stopVideoRecording(context),
+                    child: Container(
+                      height: 65,
+                      width: 65,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 3,
+                        ),
+                      ),
+                      child: Container(
+                        height: 45,
+                        width: 45,
+                        decoration: BoxDecoration(
+                          color: _isRecording ? Colors.red : Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      XFile? file = await ImagePicker()
+                          .pickImage(source: ImageSource.gallery);
+                      Navigator.of(context).push(
+                        MyCustomAnimatedRoute(
+                          enterWidget: PostPreviewScreen(File(file!.path)),
+                        ),
+                      );
+                    },
+                    child: Container(
                       height: 50,
                       width: 50,
                       alignment: Alignment.center,
@@ -218,73 +277,17 @@ class _StoryCameraState extends State<StoryCamera> with TickerProviderStateMixin
                           width: 2,
                         ),
                       ),
-                      child: GestureDetector(
-                        onTap: _toggleCamera,
-                        child: const Icon(
-                          Icons.cameraswitch,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                      child: const Icon(
+                        Icons.image,
+                        color: Colors.white,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => _takePhoto(context),
-                      onLongPressStart: (_) => _startVideoRecording(),
-                      onLongPressEnd: (_) => _stopVideoRecording(context),
-                      child: Container(
-                        height: 65,
-                        width: 65,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 3,
-                          ),
-                        ),
-                        child: Container(
-                          height: 45,
-                          width: 45,
-                          decoration: BoxDecoration(
-                            color: _isRecording ? Colors.red : Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () async {
-                        XFile? file = await ImagePicker()
-                            .pickImage(source: ImageSource.gallery);
-                        Navigator.of(context).push(
-                          MyCustomAnimatedRoute(
-                            enterWidget: PostPreviewScreen(File(file!.path)),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        height: 50,
-                        width: 50,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.image,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ]),
-        ),
+          ),
+        ]),
       ),
     );
   }

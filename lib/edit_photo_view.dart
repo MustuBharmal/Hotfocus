@@ -21,7 +21,7 @@ class _EditPhotoViewState extends State<EditPhotoView> {
   double _sliderValue = 0;
   var brightness = 0.0;
   var hue = 0.0;
-  var sat = 0.0;
+  var sat = 100.0;
   var selected = 0;
   bool isLoading = false;
 
@@ -105,7 +105,7 @@ class _EditPhotoViewState extends State<EditPhotoView> {
                             brightness: brightness,
                             hueRotation: hue,
                             saturation: sat,
-                            filter: SFXFilters.sepia,
+                            filter: SFXFilters.none,
                           ),
                         )
                       : SizedBox(

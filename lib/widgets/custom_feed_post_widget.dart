@@ -38,11 +38,11 @@ class _FeedPostWidgetState extends State<FeedPostWidget> {
           .get();
     }
 
-    // if (querySnapshot.size < _perPage) {
-    //   setState(() {
-    //     _hasMore = false;
-    //   });
-    // }
+    if (querySnapshot.size < _perPage) {
+      setState(() {
+        _hasMore = false;
+      });
+    }
 
     setState(() {
       _data.addAll(querySnapshot.docs);

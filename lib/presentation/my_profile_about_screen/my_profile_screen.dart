@@ -51,16 +51,14 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
 
   List<DocumentSnapshot> userPostsSnapshot = List.empty();
 
-  @override
-  void initState() {
-    super.initState();
+  _userUpdateFun() {
     _userStream = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.userId)
         .snapshots();
     FirebaseFirestore.instance
         .collection('users')
-        .doc(widget.userId)
+        .doc(_auth.currentUser!.uid)
         .snapshots()
         .listen((currentUserData) {
       final List<dynamic> following = currentUserData.get('following') ?? [];
@@ -77,9 +75,16 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
       final List<dynamic> friendRequests =
           targetUserData.get('friendRequests') ?? [];
       setState(() {
-        _hasSentRequest = friendRequests.contains(_auth.currentUser?.uid);
+        _hasSentRequest = friendRequests.contains(_auth.currentUser!.uid);
       });
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _userUpdateFun();
+
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.reverse) {
@@ -140,8 +145,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
               slivers: [
                 SliverPersistentHeader(
                   pinned: false,
-                  delegate:
-                      ProfileAppBar(widget.userId, coverImage, profileUrl,name),
+                  delegate: ProfileAppBar(
+                      widget.userId, coverImage, profileUrl, name),
                 ),
                 SliverToBoxAdapter(
                   child: Stack(
@@ -176,11 +181,9 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                   ),
                                 ),
                                 Container(
-                                  width: _isCurrentUser
-                                      ? deviceSize.width / 2.2
-                                      : deviceSize.width / 1.8,
-                                  padding: const EdgeInsets.only(top: 60),
+                                  padding: const EdgeInsets.only(top: 60, right: 10),
                                   child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       StreamBuilder<DocumentSnapshot>(
                                         stream: _userStream,
@@ -229,6 +232,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                                   FriendRequestService()
                                                       .sendFriendRequest(
                                                           widget.userId);
+                                                  _userUpdateFun();
                                                 },
                                                 child:
                                                     const Text('Send Request'),
@@ -249,6 +253,13 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                               onPressed: () {
                                                 FriendRequestService()
                                                     .followUser(widget.userId);
+                                                // setState(() {
+                                                //   isLoading = true;
+                                                //   _userUpdateFun();
+                                                // });
+                                                // setState(() {
+                                                //   isLoading = false;
+                                                // });
                                               },
                                               child: const Text('Follow'),
                                             );
@@ -427,7 +438,7 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
     return Stack(
       children: [
         shrinkOffset == 350
-            ?  Text(
+            ? Text(
                 name,
                 style: const TextStyle(color: Colors.black),
               )

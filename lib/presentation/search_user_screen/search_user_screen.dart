@@ -85,7 +85,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           UserData user = _users[index];
                           return InkWell(
                             onTap: () {
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ProfilePageScreen(user.uid),

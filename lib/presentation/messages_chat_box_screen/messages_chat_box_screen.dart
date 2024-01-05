@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
-import 'package:hotfocus/data/providers/user_provider.dart';
+import '/data/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/message_bubble.dart';
 import '/widgets/custom_build_progress_indicator_widget.dart';
 
 class MessagesChatBoxScreen extends StatefulWidget {
-  final userid;
+  final String userid;
 
   const MessagesChatBoxScreen({Key? key, required this.userid})
       : super(key: key);
@@ -35,7 +35,6 @@ class _MessagesChatBoxScreenState extends State<MessagesChatBoxScreen> {
   void didChangeDependencies() {
     fetchSender();
     userUid = Provider.of<UserProvider>(context).getUser.uid;
-    print(userUid);
     super.didChangeDependencies();
   }
 
