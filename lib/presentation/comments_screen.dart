@@ -45,7 +45,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserProvider>(context).getUser;
+    final user = Provider.of<UserProvider>(context).user;
 
     return Scaffold(
       backgroundColor: Colors.black45,
@@ -94,7 +94,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundImage: NetworkImage(user.userProfile),
+                backgroundImage: NetworkImage(user!.userProfile),
                 radius: 18,
               ),
               Expanded(

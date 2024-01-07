@@ -27,6 +27,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
@@ -59,7 +60,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                   children: [
                     Image.file(
                       widget.file,
-                      fit: BoxFit.contain, // Adjust this based on your needs
+                      fit: BoxFit.fill, // Adjust this based on your needs
                     ),
                     LikeButton(
                       size: 30,
@@ -96,6 +97,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                   initialValue: caption,
                   decoration: const InputDecoration(
                     labelText: 'Caption',
+                    labelStyle: TextStyle(color: Colors.white)
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -114,10 +116,10 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                       Uint8List.fromList(bytes),
                       FirebaseAuth.instance.currentUser!.uid,
                       Provider.of<UserProvider>(context, listen: false)
-                          .getUser
+                          .user!
                           .uname,
                       Provider.of<UserProvider>(context, listen: false)
-                          .getUser
+                          .user!
                           .userProfile,
                     )
                         .whenComplete(() {

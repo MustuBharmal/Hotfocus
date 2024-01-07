@@ -1,10 +1,13 @@
+import 'dart:developer';
+
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_notification_channel/flutter_notification_channel.dart';
+import 'package:flutter_notification_channel/notification_importance.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:hotfocus/presentation/notifications_screen/controller/notifications_controller.dart';
 import 'package:hotfocus/presentation/welcome_screen/welcome_screen.dart';
 import 'package:hotfocus/widgets/custom_build_progress_indicator_widget.dart';
 import '../presentation/app_intro_screen/app_intro_screen.dart';
@@ -20,9 +23,8 @@ List<CameraDescription> cameras = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  _initializeFirebase();
   cameras = await availableCameras();
   await MobileAds.instance.initialize();
   RequestConfiguration configuration =
@@ -43,7 +45,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      providers: [
+        ChangeNotifierProvider(
+          create: (ctx) => UserProvider(),
+        ),
+      ],
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
         translations: AppLocalization(),
@@ -73,4 +79,13 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
+}
+
+_initializeFirebase() async {
+  var result = await FlutterNotificationChannel.registerNotificationChannel(
+    description: 'For Showing Message Notification',
+    id: 'chats',
+    importance: NotificationImportance.IMPORTANCE_HIGH,
+    name: 'Chats',
+  );
 }

@@ -1,6 +1,14 @@
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:hotfocus/data/models/user.dart';
+import 'package:http/http.dart';
+
 import 'package:uuid/uuid.dart';
 
 import '../presentation/story_views_personal_screen/models/story_views_personal_model.dart';
@@ -8,20 +16,64 @@ import 'storage_methods.dart';
 import 'models/post.dart';
 
 class FireStoreMethods {
-  final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+  static FirebaseMessaging fMessaging = FirebaseMessaging.instance;
 
-  // Future<List<String>> getId() {
-  //   return FirebaseFirestore.instance.collection('stories').get().then((value) {
-  //     Set<String> userIds = <String>{};
-  //     for (var type in value.docs) {
-  //       userIds.add(type.id);
-  //     }
-  //     print('${userIds.length} dummy');
-  //     return userIds.toList();
-  //   });
-  // }
+  static final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+
+  static Future<void> getFirebaseMessagingToken() async {
+    await fMessaging.requestPermission();
+
+    await fMessaging.getToken().then((t) {
+      if (t != null) {
+        updatePushToken(t);
+        log('push token : $t');
+      }
+    });
+    // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    //   log('Got a message whilst in the foreground!');
+    //   log('Message data: ${message.data}');
+    //
+    //   if (message.notification != null) {
+    //     log('Message also contained a notification: ${message.notification}');
+    //   }
+    // });
+  }
+
+  static Future<void> updatePushToken(String t) async {
+    _fireStore
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({'pushToken': t});
+  }
+
+  static Future<void> sendPushNotification(UserData user, String msg) async {
+    try {
+      final body = {
+        "to": user.pushToken,
+        "notification": {
+          "title": user.uname,
+          "body": msg,
+          "android_channel_id": "chats",
+        },
+        "data": {
+          "click_action": "FLUTTER_NOTIFICATION_CLICK",
+        }
+      };
+      var res = await post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+            HttpHeaders.authorizationHeader:
+                'key=AAAAjnsFNgA:APA91bH-CWbU8LkBmIYot12qLiXlS5KhaSGFubum6JndVxLtkPzb5ipqM_8yewfVogJNURbOhj6hVo8n4tV0LAeWGPu90reO8NHX7T3NCyjNeZlrCQkLKwpSilBN2fEuQr9ulA9vMFxc'
+          },
+          body: jsonEncode(body));
+      log('ResponseStatus: ${res.statusCode}');
+      log('ResponseBody: ${res.body}');
+    } catch (e) {
+      log("\nsendNotificationError: $e");
+    }
+  }
+
   Stream<List<String>> getId() {
-    print('je;;p');
     return FirebaseFirestore.instance
         .collection('stories')
         .snapshots()
@@ -61,29 +113,6 @@ class FireStoreMethods {
       return userStories;
     });
   }
-
-  // Future<List<Story>> fetchStoriesForUser(String userId) async {
-  //   final QuerySnapshot<Map<String, dynamic>> querySnapshot =
-  //       await FirebaseFirestore.instance
-  //           .collection('stories')
-  //           .where('userId', isEqualTo: userId)
-  //           .get();
-  //
-  //   final List<Story> userStories = querySnapshot.docs
-  //       .map((QueryDocumentSnapshot<Map<String, dynamic>> document) {
-  //     final data = document.data();
-  //     return Story(
-  //       media: data['media'],
-  //       postUrl: data['postUrl'],
-  //       uid: data['uid'],
-  //       username: data['username'],
-  //       storyId: data['storyId'],
-  //       profImage: data['profImage'],
-  //     );
-  //   }).toList();
-  //
-  //   return userStories;
-  // }
 
   static Stream<List<Story>> todoStream() {
     return FirebaseFirestore.instance
@@ -130,7 +159,7 @@ class FireStoreMethods {
     String res = "Some error occurred";
     try {
       String photoUrl =
-          await StorageMethods().uploadImageToStorage('posts', file, true);
+          await StorageMethods().uploadImageToStorage('stories', file, true);
       String storyId = const Uuid().v1(); // creates unique id based on time
       Story story = Story(
         uid: uid,
@@ -142,12 +171,7 @@ class FireStoreMethods {
         media: media,
         viewed: [],
       );
-      // _fireStore
-      //     .collection('stories')
-      //     .doc(uid)
-      //     .collection('userStories')
-      //     .doc(storyId)
-      //     .set(story.toJson());
+      _fireStore.collection('stories').doc(storyId).set(story.toJson());
       res = "success";
     } catch (err) {
       res = err.toString();

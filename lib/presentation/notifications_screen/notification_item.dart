@@ -23,7 +23,7 @@ class _NotificationItemState extends State<NotificationItem> {
   _userUpdateFun() async {
     DocumentSnapshot userStream = await FirebaseFirestore.instance
         .collection('users')
-        .doc(widget.notification.uid)
+        .doc(widget.notification.userUid)
         .get();
     setState(() {
       name = (userStream.data() as Map<String, dynamic>)['uname'];

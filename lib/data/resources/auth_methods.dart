@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hotfocus/data/models/user.dart' as model;
+import 'package:hotfocus/data/models/user.dart';
 
 import '../storage_methods.dart';
 
@@ -11,13 +11,13 @@ class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // get user details
-  Future<model.UserData> getUserDetails() async {
+  Future<UserData> getUserDetails() async {
     User currentUser = _auth.currentUser!;
 
     DocumentSnapshot documentSnapshot =
     await _fireStore.collection('users').doc(currentUser.uid).get();
 
-    return model.UserData.fromSnap(documentSnapshot);
+    return UserData.fromSnap(documentSnapshot);
   }
 
   // Signing Up User
@@ -47,7 +47,7 @@ class AuthMethods {
         String photoUrl =
         await StorageMethods().uploadImageToStorage('profilePics', file, false);
 
-        model.UserData user = model.UserData(
+        UserData user = UserData(
           uname: uname,
           uid: cred.user!.uid,
           userProfile: photoUrl,
@@ -61,6 +61,7 @@ class AuthMethods {
           bio: "",
           coverImage: "",
           account_status: "public",
+          pushToken: "",
         );
 
         // adding user in our database

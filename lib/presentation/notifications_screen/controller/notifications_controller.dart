@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 
@@ -8,7 +9,9 @@ class NotificationsController extends GetxController {
   Rx<List<NotificationsModel>> notifications = Rx<List<NotificationsModel>>([]);
 
   List<NotificationsModel> get notification => notifications.value;
-  final databaseRef = FirebaseFirestore.instance.collection('notifications');
+  final databaseRef = FirebaseFirestore.instance
+      .collection('notifications')
+      .where(FirebaseAuth.instance.currentUser!.uid);
 
   Future<void> fetchNotifications() async {
     try {
@@ -30,7 +33,6 @@ class NotificationsController extends GetxController {
   void markNotificationAsRead(NotificationsModel notification) {
     // Update notification in _notifications and Firebase
   }
-
 
   @override
   void onClose() {

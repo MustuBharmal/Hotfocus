@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '/core/app_export.dart';
 
@@ -16,13 +17,11 @@ class StoryViewsPersonalController extends GetxController {
         .collection('stories')
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> querySnapshot) {
-      Set<String> userIds = <String>{};
-      for (var document in querySnapshot.docs) {
-        final userId = document.id;
-        userIds.add(userId);
-      }
-      print('${userIds.length} dummy2 vvvcvfffffff');
-      return userIds.toList();
+      return querySnapshot.docs
+          .map<String>((QueryDocumentSnapshot<Map<String, dynamic>> document) {
+        return document.id;
+      })
+          .toList();
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hotfocus/data/models/user.dart';
 import '/data/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import '/core/app_export.dart';
@@ -63,7 +64,9 @@ class _MessagesSearchScreenState extends State<MessagesSearchScreen> {
                   .collection('users')
                   .where('uid',
                       isNotEqualTo:
-                          Provider.of<UserProvider>(context, listen: false).getUser.uid)
+                          Provider.of<UserProvider>(context, listen: false)
+                              .user!
+                              .uid)
                   // .where('uname', isGreaterThanOrEqualTo: _searchTerm)
                   // .where('uname', isLessThanOrEqualTo: '$_searchTerm\uf8ff')
                   .snapshots(),
@@ -84,7 +87,8 @@ class _MessagesSearchScreenState extends State<MessagesSearchScreen> {
                 return ListView.builder(
                   itemCount: snapshot.data!.docs.length,
                   itemBuilder: (BuildContext context, int index) {
-                    DocumentSnapshot document = snapshot.data!.docs[index];
+                    UserData searchedPerson =
+                        UserData.fromSnap(snapshot.data!.docs[index]);
                     return Column(
                       children: [
                         Padding(
@@ -92,9 +96,9 @@ class _MessagesSearchScreenState extends State<MessagesSearchScreen> {
                           child: ListTile(
                             leading: CircleAvatar(
                                 backgroundImage:
-                                    NetworkImage(document['userProfile']),
+                                    NetworkImage(searchedPerson.userProfile),
                                 radius: 20),
-                            title: Text(document['uname'],
+                            title: Text(searchedPerson.uname,
                                 style: AppStyle.txtInterRegular18WhiteA700),
                             //subtitle: Text(document['followers'].length),
                             onTap: () {
@@ -102,7 +106,7 @@ class _MessagesSearchScreenState extends State<MessagesSearchScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => MessagesChatBoxScreen(
-                                    userid: document['uid'],
+                                    searchedPerson: searchedPerson,
                                   ),
                                 ),
                               );

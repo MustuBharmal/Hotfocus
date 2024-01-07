@@ -1,13 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hotfocus/presentation/notifications_screen/models/notifications_model.dart';
 
 class FriendRequestService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
 
   Future<void> followUser(String targetUid) async {
     final currentUser = FirebaseFirestore.instance
         .collection('users')
-        .doc(_auth.currentUser?.uid); // replace with the current user's UID
+        .doc(_auth.currentUser!.uid); // replace with the current user's UID
 
     // Get the current user's following list
     final currentUserData = await currentUser.get();
@@ -18,6 +20,18 @@ class FriendRequestService {
 
     // Update the current user's document with the new following list
     await currentUser.update({'following': following});
+
+    final targetUser =
+        FirebaseFirestore.instance.collection('users').doc(targetUid);
+    final targetUserData = await targetUser.get();
+    final List<dynamic> followers = targetUserData.get('followers') ?? [];
+
+    followers.add(_auth.currentUser!.uid);
+
+    await targetUser.update({'followers': followers});
+
+    notification(' has started following you', _auth.currentUser!.uid,
+        targetUid, 'follow');
   }
 
   Future<void> unfollowUser(String targetUid) async {
@@ -34,38 +48,22 @@ class FriendRequestService {
 
     // Update the current user's document with the new following list
     await currentUser.update({'following': following});
-  }
 
-  /* Future<void> sendFriendRequest(String targetUid) async {
-    final targetUser =
-        FirebaseFirestore.instance.collection('users').doc(targetUid);
-
-    // Get the target user's friend request list
-    final targetUserData = await targetUser.get();
-    final List<dynamic> friendRequests =
-        targetUserData.get('friendRequests') ?? [];
-
-    // Add the current user's UID to the friend request list
-    friendRequests
-        .add(_auth.currentUser?.uid); // replace with the current user's UID
-
-    // Update the target user's document with the new friend request list
-    await targetUser.update({'friendRequests': friendRequests});
-  }
-
-  Future<void> cancelFriendRequest(String targetUid) async {
+    // getting targetUser
     final targetUser = FirebaseFirestore.instance.collection('users').doc(targetUid);
 
-    // Get the target user's friend request list
+    // Get the target user's following list
     final targetUserData = await targetUser.get();
-    final List<dynamic> friendRequests = targetUserData.get('friendRequests') ?? [];
+    final List<dynamic> followers = targetUserData.get('followers') ?? [];
 
-    // Remove the current user's UID from the friend request list
-    friendRequests.remove(_auth.currentUser?.uid); // replace with the current user's UID
+    // Remove the current user's UID from the followers list
+    followers.remove(_auth.currentUser?.uid);
 
-    // Update the target user's document with the new friend request list
-    await targetUser.update({'friendRequests': friendRequests});
-  }*/
+    // Update the current user's document with the new following list
+    await targetUser.update({'followers': followers});
+    cancelNotification(targetUid, _auth.currentUser!.uid, 'follow');
+  }
+
   Future<void> sendFriendRequest(String targetUid) async {
     final targetUser =
         FirebaseFirestore.instance.collection('users').doc(targetUid);
@@ -90,6 +88,26 @@ class FriendRequestService {
         currentUserData.get('pendingRequests') ?? [];
     pendingRequests.add(targetUid);
     await currentUser.update({'pendingRequests': pendingRequests});
+    notification(' requested to follow you', _auth.currentUser!.uid, targetUid,
+        'request');
+  }
+
+  Future<void> notification(String notificationText, String userUid,
+      String targetUid, String identifyingString) async {
+    try {
+      NotificationsModel notificationsModel = NotificationsModel(
+          userUid: userUid,
+          notificationText: notificationText,
+          timestamp: Timestamp.now().toString());
+      _fireStore
+          .collection('notifications')
+          .doc(targetUid)
+          .collection('userNotifications')
+          .doc('$userUid$identifyingString')
+          .set(notificationsModel.toJson());
+    } catch (err) {
+      print(err.toString());
+    }
   }
 
   Future<void> acceptFriendRequest(String targetUid) async {
@@ -127,6 +145,8 @@ class FriendRequestService {
         targetUserData.get('friendRequests') ?? [];
     targetUserFriendRequests.remove(_auth.currentUser?.uid);
     await targetUser.update({'friendRequests': targetUserFriendRequests});
+    notification(' has accepted your friend request', _auth.currentUser!.uid,
+        targetUid, 'accepted');
   }
 
   Future<void> cancelFriendRequest(String targetUid) async {
@@ -153,5 +173,50 @@ class FriendRequestService {
         currentUserData.get('pendingRequests') ?? [];
     pendingRequests.remove(targetUid);
     await currentUser.update({'pendingRequests': pendingRequests});
+    cancelNotification(targetUid, _auth.currentUser!.uid, 'request');
   }
+
+  Future<void> cancelNotification(
+      String targetUid, String userId, String identifyingString) async {
+    try {
+      await _fireStore
+          .collection('notifications')
+          .doc(targetUid)
+          .collection('userNotifications')
+          .doc('$userId$identifyingString')
+          .delete();
+    } catch (err) {
+      print(err.toString());
+    }
+  }
+/* Future<void> sendFriendRequest(String targetUid) async {
+    final targetUser =
+        FirebaseFirestore.instance.collection('users').doc(targetUid);
+
+    // Get the target user's friend request list
+    final targetUserData = await targetUser.get();
+    final List<dynamic> friendRequests =
+        targetUserData.get('friendRequests') ?? [];
+
+    // Add the current user's UID to the friend request list
+    friendRequests
+        .add(_auth.currentUser?.uid); // replace with the current user's UID
+
+    // Update the target user's document with the new friend request list
+    await targetUser.update({'friendRequests': friendRequests});
+  }
+
+  Future<void> cancelFriendRequest(String targetUid) async {
+    final targetUser = FirebaseFirestore.instance.collection('users').doc(targetUid);
+
+    // Get the target user's friend request list
+    final targetUserData = await targetUser.get();
+    final List<dynamic> friendRequests = targetUserData.get('friendRequests') ?? [];
+
+    // Remove the current user's UID from the friend request list
+    friendRequests.remove(_auth.currentUser?.uid); // replace with the current user's UID
+
+    // Update the target user's document with the new friend request list
+    await targetUser.update({'friendRequests': friendRequests});
+  }*/
 }

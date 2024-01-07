@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../messages_chat_box_screen/messages_chat_box_screen.dart';
 import '../my_profile_about_screen/my_profile_screen.dart';
-import '/data/models/User.dart';
+import '/data/models/user.dart';
 import '/widgets/custom_feed_post_widget.dart';
 
 import '../../widgets/custom_profile_image_widget.dart';
@@ -88,7 +87,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ProfilePageScreen(user.uid),
+                                  builder: (context) => ProfilePageScreen(user),
                                 ),
                               );
                             },
@@ -113,16 +112,16 @@ class _SearchScreenState extends State<SearchScreen> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
+                                      // Text(
+                                      //   user.email,
+                                      //   style: const TextStyle(
+                                      //     color: Colors.white38,
+                                      //     fontSize: 15,
+                                      //     fontWeight: FontWeight.w600,
+                                      //   ),
+                                      // ),
                                       Text(
-                                        user.phone,
-                                        style: const TextStyle(
-                                          color: Colors.white38,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${user.followers} followers',
+                                        '${user.followers.length} followers',
                                         style: const TextStyle(
                                           color: Colors.white38,
                                           fontSize: 15,
@@ -173,11 +172,10 @@ class _SearchScreenState extends State<SearchScreen> {
           bio: doc['bio'],
           coverImage: doc['coverImage'],
           account_status: doc['account_status'],
+          pushToken: doc['pushToken'],
         ));
       }
-      setState(() {
-        _users = users;
-      });
+      _users = users;
     });
   }
 }

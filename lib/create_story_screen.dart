@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/core/app_export.dart';
 import '/main.dart';
-import '/presentation/custom_camera_animation.dart';
-import '/presentation/post_preview_screen.dart';
 import '/story_preview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
@@ -261,8 +259,8 @@ class _StoryCameraState extends State<StoryCamera>
                       XFile? file = await ImagePicker()
                           .pickImage(source: ImageSource.gallery);
                       Navigator.of(context).push(
-                        MyCustomAnimatedRoute(
-                          enterWidget: PostPreviewScreen(File(file!.path)),
+                        MaterialPageRoute(
+                          builder: (_) => StoryPreviewScreen(File(file!.path)),
                         ),
                       );
                     },

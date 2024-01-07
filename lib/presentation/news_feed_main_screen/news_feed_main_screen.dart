@@ -1,19 +1,19 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:hotfocus/presentation/notifications_screen/notification_page.dart';
+import '../story_views_personal_screen/storypage.dart';
+import '/data/providers/user_provider.dart';
+import '/widgets/custom_build_progress_indicator_widget.dart';
+import 'package:provider/provider.dart';
 import '../notifications_screen/controller/notifications_controller.dart';
 import '/create_story_screen.dart';
 
-import '../../data/firestore_methods.dart';
 import '../../widgets/custom_feed_post_widget.dart';
 import '../camera_screen/double_camera_clicking.dart';
 import '../my_profile_about_screen/my_profile_screen.dart';
-import '../story_views_personal_screen/controller/story_views_personal_controller.dart';
 import '../story_views_personal_screen/models/story_views_personal_model.dart';
-import '../story_views_personal_screen/storypage.dart';
 import '/core/app_export.dart';
 import '../messages_search_screen/messages_search_screen.dart';
 import '../open_camera_screen.dart';
@@ -30,139 +30,183 @@ class NewsFeedMainScreen extends StatefulWidget {
 
 class _NewsFeedMainScreenState extends State<NewsFeedMainScreen> {
   bool isAdLoaded = false;
-  bool _isLoading = false;
-  String uid = FirebaseAuth.instance.currentUser!.uid;
+
+  // String uid = '';
 
   @override
   void initState() {
+    Future.delayed(Duration.zero).then((value) =>
+        Provider.of<UserProvider>(context, listen: false).refreshUser());
     Get.put(NotificationsController()).fetchNotifications();
     super.initState();
   }
 
+  List<String> userIds = [];
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: ColorConstant.black900,
-        appBar: AppBar(
-          toolbarHeight: getVerticalSize(60.00),
-          leadingWidth: 107,
-          leading: Container(
-            margin: const EdgeInsets.only(left: 20, top: 22, bottom: 11),
-            child: AppbarImage(
-              height: getVerticalSize(16.00),
-              width: getHorizontalSize(87.00),
-              svgPath: ImageConstant.imgHotFocusTypo,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              color: ColorConstant.whiteA700,
-              onPressed: onTapSearch,
-            ),
-            IconButton(
-              icon: const Icon(Icons.sms),
-              color: ColorConstant.whiteA700,
-              onPressed: onTapMenu,
-            ),
-            CustomImageView(onTap: onTapMenu),
-          ],
-          backgroundColor: Colors.black,
-        ),
-        body: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(
-                  height: 120,
-                  child: GetX<StoryViewsPersonalController>(
-                    init: Get.put<StoryViewsPersonalController>(
-                        StoryViewsPersonalController()),
-                    builder: (storyController) {
-                      return ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: storyController.userId.length,
-                        itemBuilder: (context, index) {
-                          final userId = storyController.userId[index];
-                          return StoryWidgetItem(userId);
+    return Provider.of<UserProvider>(context).user == null
+        ? const Center(child: CircularProgressIndicator())
+        : SafeArea(
+            child: Scaffold(
+              backgroundColor: ColorConstant.black900,
+              appBar: AppBar(
+                toolbarHeight: getVerticalSize(60.00),
+                leadingWidth: 107,
+                leading: Container(
+                  margin: const EdgeInsets.only(left: 20, top: 22, bottom: 11),
+                  child: AppbarImage(
+                    height: getVerticalSize(16.00),
+                    width: getHorizontalSize(87.00),
+                    svgPath: ImageConstant.imgHotFocusTypo,
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    color: ColorConstant.whiteA700,
+                    onPressed: onTapSearch,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.sms),
+                    color: ColorConstant.whiteA700,
+                    onPressed: onTapMenu,
+                  ),
+                  CustomImageView(onTap: onTapMenu),
+                ],
+                backgroundColor: Colors.black,
+              ),
+              body: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                        height: 120,
+                        child: StreamBuilder(
+                          stream: FirebaseFirestore.instance
+                              .collection('stories')
+                              .snapshots()
+                              .map((QuerySnapshot<Map<String, dynamic>>
+                                  querySnapshot) {
+                            List<Story> stories = [];
+                            for (var document in querySnapshot.docs) {
+                              final data = document.data();
+                              final userId = data['uid'] as String;
+                              if (Provider.of<UserProvider>(context,
+                                          listen: false)
+                                      .user!
+                                      .following
+                                      .contains(userId) ||
+                                  userId ==
+                                      Provider.of<UserProvider>(context,
+                                              listen: false)
+                                          .user!
+                                          .uid) {
+                                Story story = Story.fromSnap(document);
+
+                                stories.add(story);
+                                if (!userIds.contains(userId)) {
+                                  userIds.add(userId);
+                                }
+                              }
+                            }
+
+                            return stories;
+                          }),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return CustomProgressIndicator();
+                            }
+                            if (snapshot.data!.length == 0) {
+                              return Container();
+                            }
+                            return ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: userIds.length,
+                              itemBuilder: (context, index) {
+                                final story = snapshot.data!;
+                                return StoryWidgetItem(story, userIds[index]);
+                              },
+                            );
+                          },
+                        )),
+                  ),
+                  const FeedPostWidget(),
+                ],
+              ),
+              floatingActionButton: SpeedDial(
+                animatedIconTheme: const IconThemeData(color: Colors.white),
+                animatedIcon: AnimatedIcons.menu_close,
+                overlayColor: Colors.black54,
+                backgroundColor: Colors.black54,
+                children: [
+                  SpeedDialChild(
+                      child: const Icon(Icons.account_box_rounded),
+                      label: 'Profile',
+                      onTap: () async {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProfilePageScreen(
+                                Provider.of<UserProvider>(context,
+                                        listen: false)
+                                    .user!),
+                          ),
+                        );
+                      }),
+                  SpeedDialChild(
+                      child: const Icon(Icons.add_box_rounded),
+                      label: 'Story',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const StoryCamera();
+                            },
+                          ),
+                        );
+                      }),
+                  SpeedDialChild(
+                    child: const Icon(Icons.camera_alt),
+                    label: 'Double Camera',
+                    //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) {
+                          return const DoubleCameraScreen();
                         },
+                      ));
+                    },
+                  ),
+                  SpeedDialChild(
+                    child: const Icon(Icons.camera_alt),
+                    label: 'Post',
+                    //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const OpenCamera()),
                       );
                     },
-                  )),
+                  ),
+                  SpeedDialChild(
+                    child: const Icon(Icons.notifications_none_outlined),
+                    label: 'Notifications',
+                    onTap: onTapNotification,
+                  ),
+                  SpeedDialChild(
+                    child: const Icon(Icons.connected_tv),
+                    label: 'Requests',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) {
+                          return const FollowRequestScreen();
+                        },
+                      ));
+                    },
+                  ),
+                ],
+              ),
             ),
-            const FeedPostWidget(),
-          ],
-        ),
-        floatingActionButton: SpeedDial(
-          animatedIconTheme: const IconThemeData(color: Colors.white),
-          animatedIcon: AnimatedIcons.menu_close,
-          overlayColor: Colors.black54,
-          backgroundColor: Colors.black54,
-          children: [
-            SpeedDialChild(
-                child: const Icon(Icons.account_box_rounded),
-                label: 'Profile',
-                onTap: () async {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ProfilePageScreen(uid),
-                    ),
-                  );
-                }),
-            SpeedDialChild(
-                child: const Icon(Icons.add_box_rounded),
-                label: 'Story',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return const StoryCamera();
-                      },
-                    ),
-                  );
-                }),
-            SpeedDialChild(
-              child: const Icon(Icons.camera_alt),
-              label: 'Double Camera',
-              //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    return const DoubleCameraScreen();
-                  },
-                ));
-              },
-            ),
-            SpeedDialChild(
-              child: const Icon(Icons.camera_alt),
-              label: 'Post',
-              //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const OpenCamera()),
-                );
-              },
-            ),
-            SpeedDialChild(
-              child: const Icon(Icons.notifications_none_outlined),
-              label: 'Notifications',
-              onTap: onTapNotification,
-            ),
-            SpeedDialChild(
-              child: const Icon(Icons.connected_tv),
-              label: 'Requests',
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    return const FollowRequestScreen();
-                  },
-                ));
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+          );
   }
 
   onTapRowPlus() {
@@ -182,7 +226,7 @@ class _NewsFeedMainScreenState extends State<NewsFeedMainScreen> {
 
   onTapSearch() {
     Get.toNamed(AppRoutes.searchUserScreen, arguments: [
-      {"uid": uid}
+      {"uid": Provider.of<UserProvider>(context, listen: false).user!.uid}
     ]);
   }
 
@@ -196,84 +240,59 @@ class _NewsFeedMainScreenState extends State<NewsFeedMainScreen> {
 }
 
 class StoryWidgetItem extends StatefulWidget {
+  final List<Story> stories;
   final String userId;
 
-  const StoryWidgetItem(this.userId, {super.key});
+  const StoryWidgetItem(this.stories, this.userId, {super.key});
 
   @override
   State<StoryWidgetItem> createState() => _StoryWidgetItemState();
 }
 
 class _StoryWidgetItemState extends State<StoryWidgetItem> {
-  late final StreamController<List<Story>> _storiesController =
-      StreamController<List<Story>>();
-  StreamSubscription<List<Story>>? _storiesSubscription;
-
+  List<Story>story = [];
   @override
   void initState() {
-    _storiesSubscription =
-        FireStoreMethods.streamStoriesForUser(widget.userId).listen((stories) {
-      _storiesController.add(stories);
-    }, onError: (error) {
-      // Handle error
-      print("Error fetching stories: $error");
-    });
+    // TODO: implement initState
+    for(var aStory in widget.stories){
+      if(aStory.uid == widget.userId){
+        story.add(aStory);
+      }
+    }
     super.initState();
   }
-
-  @override
-  void dispose() {
-    _storiesController.close();
-    _storiesSubscription?.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Story>>(
-        stream: _storiesController.stream,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            List<Story> stories = snapshot.data!;
-            return SizedBox(
-              height: 100,
-              width: 100,
-              child:
-                  Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return StoryPage(stories);
-                        },
-                      ),
-                    );
-                  },
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundImage: NetworkImage(stories.first.profImage),
-                  ),
-                ),
-                Padding(
-                  padding: getPadding(top: 9),
-                  child: Text(
-                    stories.first.username,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.left,
-                    style: AppStyle.txtInterRegular10,
-                  ),
-                )
-              ]),
+    return SizedBox(
+      height: 100,
+      width: 100,
+      child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  return StoryPage(story);
+                },
+              ),
             );
-          } else if (snapshot.hasError) {
-            return Text("Error: ${snapshot.error}");
-          } else {
-            return const Center(
-                child:
-                    CircularProgressIndicator()); // Loading indicator while fetching
-          }
-        });
+          },
+          child: CircleAvatar(
+            radius: 40,
+            backgroundImage: NetworkImage(story.first.profImage),
+          ),
+        ),
+        Padding(
+          padding: getPadding(top: 9),
+          child: Text(
+            story.first.username,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.left,
+            style: AppStyle.txtInterRegular10,
+          ),
+        )
+      ]),
+    );
   }
 }
 /* onTap: () {

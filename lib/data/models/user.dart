@@ -14,8 +14,9 @@ class UserData {
   final String account_status;
   final String dob;
   final List following;
+  String pushToken;
 
-  const UserData({
+  UserData({
     required this.uname,
     required this.uid,
     required this.userProfile,
@@ -29,26 +30,27 @@ class UserData {
     required this.bio,
     required this.coverImage,
     required this.account_status,
+    required this.pushToken,
   });
 
   static UserData fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
 
     return UserData(
-      uname: snapshot["uname"],
-      uid: snapshot["uid"],
-      email: snapshot["email"],
-      userProfile: snapshot["userProfile"],
-      phone: snapshot["phone"],
-      followers: snapshot["followers"],
-      following: snapshot["following"],
-      friendRequests: snapshot["friendRequests"],
-      pendingRequests: snapshot["pendingRequests"],
-      dob: snapshot['dob'],
-      bio: snapshot['bio'],
-      coverImage: snapshot['coverImage'],
-      account_status: snapshot['account_status'],
-    );
+        uname: snapshot["uname"],
+        uid: snapshot["uid"],
+        email: snapshot["email"],
+        userProfile: snapshot["userProfile"],
+        phone: snapshot["phone"],
+        followers: snapshot["followers"],
+        following: snapshot["following"],
+        friendRequests: snapshot["friendRequests"],
+        pendingRequests: snapshot["pendingRequests"],
+        dob: snapshot['dob'],
+        bio: snapshot['bio'],
+        coverImage: snapshot['coverImage'],
+        account_status: snapshot['account_status'],
+        pushToken: snapshot['pushToken']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -65,5 +67,6 @@ class UserData {
         "bio": bio,
         "coverImage": coverImage,
         "account_status": account_status,
+        "pushToken": pushToken,
       };
 }

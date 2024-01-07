@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../data/models/user.dart';
 import '../../friend_request_services.dart';
 import '../messages_chat_box_screen/messages_chat_box_screen.dart';
 import '/widgets/custom_build_progress_indicator_widget.dart';
@@ -19,16 +20,16 @@ import '../../data/storage_methods.dart';
 import '../../widgets/custom_single_post.dart';
 import '../sign_up_screen/utils/utils.dart';
 
-late Stream<DocumentSnapshot> _userStream;
+Stream<DocumentSnapshot>? _userStream;
 bool _isFollowing = false;
 bool _hasSentRequest = false;
 bool _isCurrentUser = false;
 FirebaseAuth _auth = FirebaseAuth.instance;
 
 class ProfilePageScreen extends StatefulWidget {
-  const ProfilePageScreen(this.userId, {super.key});
+  const ProfilePageScreen(this.profileOfUser, {super.key});
 
-  final String userId;
+  final UserData profileOfUser;
   static const routeName = '/profile-page-screen';
 
   @override
@@ -40,21 +41,18 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
   final ScrollController _scrollController = ScrollController();
   Widget view = Container();
   bool isLoading = false;
-  String name = "";
-  String profileUrl = "";
-  String coverImage = "";
   String isOnline = "";
-  String bio = "";
-  List followerCount = [];
-  List followingCount = [];
+  int followerCount = 0;
+  int followingCount = 0;
   int postCount = 0;
 
   List<DocumentSnapshot> userPostsSnapshot = List.empty();
 
-  _userUpdateFun() {
-    _userStream = FirebaseFirestore.instance
+  _userUpdateFun() async {
+
+    _userStream = await FirebaseFirestore.instance
         .collection('users')
-        .doc(widget.userId)
+        .doc(widget.profileOfUser.uid)
         .snapshots();
     FirebaseFirestore.instance
         .collection('users')
@@ -62,28 +60,24 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
         .snapshots()
         .listen((currentUserData) {
       final List<dynamic> following = currentUserData.get('following') ?? [];
-      setState(() {
-        _isFollowing = following.contains(widget.userId);
-        _isCurrentUser = widget.userId == _auth.currentUser?.uid;
-      });
+      _isFollowing = following.contains(widget.profileOfUser.uid);
+      _isCurrentUser = widget.profileOfUser.uid == _auth.currentUser?.uid;
     });
     FirebaseFirestore.instance
         .collection('users')
-        .doc(widget.userId)
+        .doc(widget.profileOfUser.uid)
         .snapshots()
         .listen((targetUserData) {
       final List<dynamic> friendRequests =
           targetUserData.get('friendRequests') ?? [];
-      setState(() {
-        _hasSentRequest = friendRequests.contains(_auth.currentUser!.uid);
-      });
+      _hasSentRequest = friendRequests.contains(_auth.currentUser!.uid);
     });
+
   }
 
   @override
   void initState() {
     super.initState();
-    _userUpdateFun();
 
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
@@ -97,31 +91,23 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
         });
       }
     });
+    _userUpdateFun();
     getSnapData();
   }
 
   getSnapData() async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .get();
-
     QuerySnapshot<Map<String, dynamic>> postsRef = await FirebaseFirestore
         .instance
         .collection('posts')
-        .where('uid', isEqualTo: widget.userId)
+        .where('uid', isEqualTo: widget.profileOfUser.uid)
         .orderBy('datePublished', descending: true)
         .get();
 
     setState(() {
-      name = (snapshot.data() as Map<String, dynamic>)['uname'];
-      profileUrl = (snapshot.data() as Map<String, dynamic>)['userProfile'];
-      coverImage = (snapshot.data() as Map<String, dynamic>)['coverImage'];
-      bio = (snapshot.data() as Map<String, dynamic>)['bio'];
-      followerCount = (snapshot.data() as Map<String, dynamic>)['followers'];
-      followingCount = (snapshot.data() as Map<String, dynamic>)['following'];
       postCount = postsRef.docs.length;
       userPostsSnapshot = postsRef.docs;
+      followerCount = widget.profileOfUser.following.length;
+      followerCount = widget.profileOfUser.followers.length;
       isLoading = false;
     });
   }
@@ -134,7 +120,6 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final deviceSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.black,
       body: isLoading
@@ -146,7 +131,10 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                 SliverPersistentHeader(
                   pinned: false,
                   delegate: ProfileAppBar(
-                      widget.userId, coverImage, profileUrl, name),
+                      widget.profileOfUser.uid,
+                      widget.profileOfUser.coverImage,
+                      widget.profileOfUser.userProfile,
+                      widget.profileOfUser.uname),
                 ),
                 SliverToBoxAdapter(
                   child: Stack(
@@ -168,7 +156,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          bio,
+                                          widget.profileOfUser.bio,
                                           softWrap: true,
                                           style: const TextStyle(
                                             color: Colors.white,
@@ -181,7 +169,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.only(top: 60, right: 10),
+                                  padding:
+                                      const EdgeInsets.only(top: 60, right: 10),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
@@ -210,7 +199,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                                 onPressed: () {
                                                   FriendRequestService()
                                                       .cancelFriendRequest(
-                                                          widget.userId);
+                                                          widget.profileOfUser
+                                                              .uid);
                                                 },
                                                 child: const Text(
                                                     'Cancel Request'),
@@ -219,9 +209,16 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                               // Current user is following the target user, show unfollow button
                                               return ElevatedButton(
                                                 onPressed: () {
+                                                  setState(() {
+                                                    isLoading = true;
+                                                  });
                                                   FriendRequestService()
-                                                      .unfollowUser(
-                                                          widget.userId);
+                                                      .unfollowUser(widget
+                                                          .profileOfUser.uid);
+                                                  _userUpdateFun();
+                                                  setState(() {
+                                                    isLoading = false;
+                                                  });
                                                 },
                                                 child: const Text('Unfollow'),
                                               );
@@ -230,9 +227,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                               return ElevatedButton(
                                                 onPressed: () {
                                                   FriendRequestService()
-                                                      .sendFriendRequest(
-                                                          widget.userId);
-                                                  _userUpdateFun();
+                                                      .sendFriendRequest(widget
+                                                          .profileOfUser.uid);
                                                 },
                                                 child:
                                                     const Text('Send Request'),
@@ -242,24 +238,32 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                             // Current user is following the target user, show unfollow button
                                             return ElevatedButton(
                                               onPressed: () {
+                                                setState(() {
+                                                  isLoading = true;
+                                                });
                                                 FriendRequestService()
-                                                    .unfollowUser(
-                                                        widget.userId);
+                                                    .unfollowUser(widget
+                                                        .profileOfUser.uid);
+                                                _userUpdateFun();
+                                                setState(() {
+                                                  isLoading = false;
+                                                });
                                               },
                                               child: const Text('Unfollow'),
                                             );
                                           } else {
                                             return ElevatedButton(
                                               onPressed: () {
+                                                setState(() {
+                                                  isLoading = true;
+                                                });
                                                 FriendRequestService()
-                                                    .followUser(widget.userId);
-                                                // setState(() {
-                                                //   isLoading = true;
-                                                //   _userUpdateFun();
-                                                // });
-                                                // setState(() {
-                                                //   isLoading = false;
-                                                // });
+                                                    .followUser(widget
+                                                        .profileOfUser.uid);
+                                                _userUpdateFun();
+                                                setState(() {
+                                                  isLoading = false;
+                                                });
                                               },
                                               child: const Text('Follow'),
                                             );
@@ -278,7 +282,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                               MaterialPageRoute(
                                                 builder: (context) =>
                                                     MessagesChatBoxScreen(
-                                                  userid: widget.userId,
+                                                  searchedPerson:
+                                                      widget.profileOfUser,
                                                 ),
                                               ),
                                             );
@@ -315,7 +320,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                   Row(
                                     children: [
                                       Text(
-                                        '${followingCount.length}',
+                                        '$followingCount',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20,
@@ -330,7 +335,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                   Row(
                                     children: [
                                       Text(
-                                        '${followerCount.length}',
+                                        '$followerCount',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20,

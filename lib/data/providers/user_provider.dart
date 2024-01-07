@@ -1,18 +1,29 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
-import 'package:hotfocus/data/models/user.dart' as model;
+import 'package:hotfocus/data/firestore_methods.dart';
+import 'package:hotfocus/data/models/user.dart';
 
 import '../resources/auth_methods.dart';
 
-
 class UserProvider with ChangeNotifier {
-  model.UserData? _user;
-  final AuthMethods _authMethods = AuthMethods();
-
-  model.UserData get getUser => _user!;
+  UserData? user;
 
   Future<void> refreshUser() async {
-    model.UserData user = await _authMethods.getUserDetails();
-    _user = user;
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get()
+        .then(
+      (querySnapshot) {
+        if (querySnapshot.data() != null) {
+          user = UserData.fromSnap(querySnapshot);
+        }
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+
+    await FireStoreMethods.getFirebaseMessagingToken();
     notifyListeners();
   }
 }

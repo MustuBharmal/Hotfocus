@@ -19,7 +19,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       const Duration(seconds: 3),
           () {
         if (FirebaseAuth.instance.currentUser != null) {
-          Provider.of<UserProvider>(context, listen: false).refreshUser();
           Get.offNamedUntil(AppRoutes.newsFeedMainScreen, (route) => false);
         }
       },

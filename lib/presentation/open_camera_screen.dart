@@ -3,15 +3,14 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hotfocus/core/app_export.dart';
-import 'package:hotfocus/edit_photo_view.dart';
-import 'package:hotfocus/main.dart';
-import 'package:hotfocus/presentation/post_preview_screen.dart';
+import '/core/app_export.dart';
+import '/edit_photo_view.dart';
+import '/main.dart';
+import '/presentation/post_preview_screen.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-
-import 'custom_camera_animation.dart';
 
 class OpenCamera extends StatefulWidget {
   const OpenCamera({Key? key}) : super(key: key);
@@ -32,6 +31,7 @@ class _OpenCameraState extends State<OpenCamera> with TickerProviderStateMixin {
   late Animation<double> animationToDecreasingCurve;
   late CameraController _cameraController;
   bool _isRecording = false;
+  final picker = ImagePicker();
   late String _videoPath;
 
   @override
@@ -256,11 +256,9 @@ class _OpenCameraState extends State<OpenCamera> with TickerProviderStateMixin {
                       onTap: () async {
                         XFile? file = await ImagePicker()
                             .pickImage(source: ImageSource.gallery);
-                        Navigator.of(context).push(
-                          MyCustomAnimatedRoute(
-                            enterWidget: PostPreviewScreen(File(file!.path)),
-                          ),
-                        );
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) =>
+                                PostPreviewScreen(File(file!.path))));
                       },
                       child: Container(
                         height: 50,

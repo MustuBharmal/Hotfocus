@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '/presentation/sign_up_screen/utils/utils.dart';
@@ -22,11 +20,10 @@ class StoryPreviewScreen extends StatefulWidget {
 }
 
 class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
-  String caption = '';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
@@ -92,17 +89,6 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  initialValue: caption,
-                  decoration: const InputDecoration(
-                    labelText: 'Caption',
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      caption = value;
-                    });
-                  },
-                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () async {
@@ -111,12 +97,14 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                     await FireStoreMethods()
                         .uploadStory(
                       Uint8List.fromList(bytes),
-                      Provider.of<UserProvider>(context, listen: false).getUser.uid,
                       Provider.of<UserProvider>(context, listen: false)
-                          .getUser
+                          .user!
+                          .uid,
+                      Provider.of<UserProvider>(context, listen: false)
+                          .user!
                           .uname,
                       Provider.of<UserProvider>(context, listen: false)
-                          .getUser
+                          .user!
                           .userProfile,
                       'image',
                     )
