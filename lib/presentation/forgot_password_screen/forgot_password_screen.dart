@@ -1,14 +1,11 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hotfocus/core/app_export.dart';
 import 'package:hotfocus/core/utils/validation_functions.dart';
-import 'package:hotfocus/presentation/sign_up_screen/utils/utils.dart';
 import 'package:hotfocus/widgets/custom_button.dart';
 import 'package:hotfocus/widgets/custom_text_form_field.dart';
-import 'package:http/http.dart' as http;
 
+import '../../core/utils/dialogs.dart';
 import 'controller/forgot_password_controller.dart';
 
 // ignore_for_file: must_be_immutable
@@ -93,14 +90,16 @@ class ForgotPasswordScreen extends GetWidget<ForgotPasswordController> {
                                   width: 300,
                                   text: "Reset Password",
                                   onTap: () {
-                                    try{
+                                    try {
                                       var res = FirebaseAuth.instance
                                           .sendPasswordResetEmail(
-                                          email: controller.buttonForgotController
-                                              .text);
-                                      showSnackBar(context, "Password Reset link sent to the Email");
-                                    } on FirebaseAuthException catch (e){
-                                      showSnackBar(context, e.message.toString());
+                                              email: controller
+                                                  .buttonForgotController.text);
+                                      Dialogs.showSnackBar(context,
+                                          "Password Reset link sent to the Email");
+                                    } on FirebaseAuthException catch (e) {
+                                      Dialogs.showSnackBar(
+                                          context, e.message.toString());
                                     }
                                   },
                                   margin: getMargin(top: 35, bottom: 5),
@@ -111,8 +110,4 @@ class ForgotPasswordScreen extends GetWidget<ForgotPasswordController> {
   onTapImgArrowleft() {
     Get.back();
   }
-
-
 }
-
-

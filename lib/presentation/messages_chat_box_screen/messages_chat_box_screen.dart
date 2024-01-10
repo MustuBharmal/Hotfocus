@@ -132,6 +132,7 @@ class _MessagesChatBoxScreenState extends State<MessagesChatBoxScreen> {
                       return MessageBubble.next(
                         message: chatMessage['text'],
                         isMe: user!.uid == currentMessageUserId,
+                        timestamp: chatMessage['timestamp'],
                       );
                     } else {
                       return MessageBubble.first(
@@ -139,6 +140,7 @@ class _MessagesChatBoxScreenState extends State<MessagesChatBoxScreen> {
                         // username: chatMessage['username'],
                         message: chatMessage['text'],
                         isMe: user!.uid == currentMessageUserId,
+                        timestamp: chatMessage['timestamp'],
                       );
                     }
                   },
@@ -166,7 +168,7 @@ class _MessagesChatBoxScreenState extends State<MessagesChatBoxScreen> {
                     ),
                     decoration: InputDecoration(
                       fillColor: Colors.white70,
-                      hintText: "    Type your message",
+                      hintText: "  Type your message",
                       hintStyle: const TextStyle(
                         color: Colors.white,
                       ),
@@ -247,7 +249,7 @@ class _MessagesChatBoxScreenState extends State<MessagesChatBoxScreen> {
     String text = _textController.text;
     if (text.isNotEmpty) {
       _textController.clear();
-      var timestamp = DateTime.now().millisecondsSinceEpoch;
+      var timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       String chatId = _getChatId();
       _db
           .collection('messages')

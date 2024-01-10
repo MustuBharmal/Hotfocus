@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:hotfocus/core/app_export.dart';
+import '/core/app_export.dart';
 
 import '../../widgets/custom_build_progress_indicator_widget.dart';
 
@@ -28,7 +28,6 @@ class _DoubleCameraScreenState extends State<DoubleCameraScreen> {
   late Map<Permission, PermissionStatus> statuses;
   List<ui.Image> imageList = [];
 
-  // late ui.Image providerImage;
   bool _isLoading = false;
   bool _isFront = true;
   bool _isBack = true;

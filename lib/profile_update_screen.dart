@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/utils/validation_functions.dart';
 import '../../widgets/custom_text_form_field.dart';
+import 'core/utils/dialogs.dart';
 import 'data/resources/auth_methods.dart';
 
 class ProfileUpdateScreen extends StatefulWidget {
@@ -221,15 +222,15 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
         }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
-          showSnackBar(context, 'The password provided is too weak');
+          Dialogs.showSnackBar(context, 'The password provided is too weak');
         } else if (e.code == 'email-already-in-use') {
-          showSnackBar(context, 'The account already exists for that email');
+          Dialogs.showSnackBar(context, 'The account already exists for that email');
         } else if (e.code == 'invalid-email') {
-          showSnackBar(context, 'The email address is not valid');
+          Dialogs.showSnackBar(context, 'The email address is not valid');
         } else if (e.code == 'operation-not-allowed') {
-          showSnackBar(context, 'Error during sign up');
+          Dialogs.showSnackBar(context, 'Error during sign up');
         } else {
-          showSnackBar(context, 'Error: ${e.message}');
+          Dialogs.showSnackBar(context, 'Error: ${e.message}');
         }
       } catch (e) {
         print('Error: $e');

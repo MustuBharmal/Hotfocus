@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '/core/app_export.dart';
 import '/main.dart';
 import '/story_preview.dart';
@@ -22,7 +22,6 @@ class _StoryCameraState extends State<StoryCamera>
   bool backPressed = false;
 
   late AnimationController controllerToIncreasingCurve;
-
   late AnimationController controllerToDecreasingCurve;
 
   late Animation<double> animationToIncreasingCurve;
@@ -150,28 +149,53 @@ class _StoryCameraState extends State<StoryCamera>
     }
   }
 
-  void _takePhoto(context) async {
-    // Capture a photo and save it to the device
-    try {
-      await _initializeControllerFuture;
-      XFile? xFile = await _cameraController.takePicture();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => StoryPreviewScreen(File(xFile.path)),
-        ),
-      );
-    } catch (e) {
-      print(e);
-    }
-  }
-
   @override
   void dispose() {
     controllerToIncreasingCurve.dispose();
     controllerToDecreasingCurve.dispose();
     super.dispose();
   }
-
+  _cropImage(File imgFile, context) async {
+    final croppedFile = await ImageCropper().cropImage(
+        sourcePath: imgFile.path,
+        aspectRatioPresets: Platform.isAndroid
+            ? [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio16x9
+        ]
+            : [
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio5x3,
+          CropAspectRatioPreset.ratio5x4,
+          CropAspectRatioPreset.ratio7x5,
+          CropAspectRatioPreset.ratio16x9
+        ],
+        uiSettings: [
+          AndroidUiSettings(
+              toolbarTitle: "Image Cropper",
+              toolbarColor: Colors.black,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.original,
+              lockAspectRatio: false),
+          IOSUiSettings(
+            title: "Image Cropper",
+          )
+        ]);
+    if (croppedFile != null) {
+      imageCache.clear();
+      setState(() {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => StoryPreviewScreen(File(croppedFile.path))));
+      });
+      // reload();
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -230,7 +254,15 @@ class _StoryCameraState extends State<StoryCamera>
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => _takePhoto(context),
+                    onTap: () async {
+                      try {
+                        await _initializeControllerFuture;
+                        XFile? xFile = await _cameraController.takePicture();
+                        _cropImage(File(xFile.path), context);
+                      } catch (e) {
+                        print(e.toString());
+                      }
+                    },
                     onLongPressStart: (_) => _startVideoRecording(),
                     onLongPressEnd: (_) => _stopVideoRecording(context),
                     child: Container(
@@ -256,13 +288,13 @@ class _StoryCameraState extends State<StoryCamera>
                   ),
                   GestureDetector(
                     onTap: () async {
-                      XFile? file = await ImagePicker()
-                          .pickImage(source: ImageSource.gallery);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => StoryPreviewScreen(File(file!.path)),
-                        ),
-                      );
+                      try {
+                        XFile? xFile = await ImagePicker().pickImage(
+                            source: ImageSource.gallery, imageQuality: 50);
+                        _cropImage(File(xFile!.path), context);
+                      } catch (e) {
+                        print(e.toString());
+                      }
                     },
                     child: Container(
                       height: 50,

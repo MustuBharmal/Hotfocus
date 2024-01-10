@@ -1,11 +1,4 @@
 class ImageConstant {
-  // static String imgBackgroundimage9190x190 =
-  //     'assets/images/img_backgroundimage9_190x190.png';
-
-  // static String imgRanasawalhaw399x390 =
-  //     'assets/images/img_ranasawalhaw_399x390.png';
-  // static String imgBackgroundimage9 = 'assets/images/img_backgroundimage9.png';
-  // static String imgRanasawalhaw4 = 'assets/images/img_ranasawalhaw_4.png';
   static String user = 'assets/images/user.png';
 
   static String imgHotFocusTypo = 'assets/images/img_hotfocustypo.svg';

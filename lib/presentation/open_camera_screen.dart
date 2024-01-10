@@ -2,11 +2,10 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '/core/app_export.dart';
 import '/edit_photo_view.dart';
 import '/main.dart';
-import '/presentation/post_preview_screen.dart';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
@@ -152,18 +151,45 @@ class _OpenCameraState extends State<OpenCamera> with TickerProviderStateMixin {
     }
   }
 
-  void _takePhoto(context) async {
-    // Capture a photo and save it to the device
-    try {
-      await _initializeControllerFuture;
-      XFile? xFile = await _cameraController.takePicture();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => EditPhotoView(File(xFile.path)),
-        ),
-      );
-    } catch (e) {
-      print(e);
+  _cropImage(File imgFile, context) async {
+    final croppedFile = await ImageCropper().cropImage(
+        sourcePath: imgFile.path,
+        aspectRatioPresets: Platform.isAndroid
+            ? [
+                CropAspectRatioPreset.square,
+                CropAspectRatioPreset.ratio3x2,
+                CropAspectRatioPreset.original,
+                CropAspectRatioPreset.ratio4x3,
+                CropAspectRatioPreset.ratio16x9
+              ]
+            : [
+                CropAspectRatioPreset.original,
+                CropAspectRatioPreset.square,
+                CropAspectRatioPreset.ratio3x2,
+                CropAspectRatioPreset.ratio4x3,
+                CropAspectRatioPreset.ratio5x3,
+                CropAspectRatioPreset.ratio5x4,
+                CropAspectRatioPreset.ratio7x5,
+                CropAspectRatioPreset.ratio16x9
+              ],
+        uiSettings: [
+          AndroidUiSettings(
+              toolbarTitle: "Image Cropper",
+              toolbarColor: Colors.black,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.original,
+              lockAspectRatio: false),
+          IOSUiSettings(
+            title: "Image Cropper",
+          )
+        ]);
+    if (croppedFile != null) {
+      imageCache.clear();
+      setState(() {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => EditPhotoView(File(croppedFile.path))));
+      });
+      // reload();
     }
   }
 
@@ -228,7 +254,15 @@ class _OpenCameraState extends State<OpenCamera> with TickerProviderStateMixin {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => _takePhoto(context),
+                      onTap: () async {
+                        try {
+                          await _initializeControllerFuture;
+                          XFile? xFile = await _cameraController.takePicture();
+                          _cropImage(File(xFile.path), context);
+                        } catch (e) {
+                          print(e.toString());
+                        }
+                      },
                       onLongPressStart: (_) => _startVideoRecording(),
                       onLongPressEnd: (_) => _stopVideoRecording(context),
                       child: Container(
@@ -254,11 +288,13 @@ class _OpenCameraState extends State<OpenCamera> with TickerProviderStateMixin {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        XFile? file = await ImagePicker()
-                            .pickImage(source: ImageSource.gallery);
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) =>
-                                PostPreviewScreen(File(file!.path))));
+                        try {
+                          XFile? xFile = await ImagePicker().pickImage(
+                              source: ImageSource.gallery, imageQuality: 50);
+                          _cropImage(File(xFile!.path), context);
+                        } catch (e) {
+                          print(e.toString());
+                        }
                       },
                       child: Container(
                         height: 50,

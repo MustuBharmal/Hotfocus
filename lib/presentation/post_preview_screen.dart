@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../core/utils/dialogs.dart';
 import '/presentation/sign_up_screen/utils/utils.dart';
 import 'package:like_button/like_button.dart';
 import 'package:provider/provider.dart';
@@ -94,10 +95,12 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
+                  cursorColor: Colors.white,
                   initialValue: caption,
+                  style: TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: 'Caption',
-                    labelStyle: TextStyle(color: Colors.white)
+                    labelStyle: TextStyle(color: Colors.grey)
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -123,10 +126,10 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                           .userProfile,
                     )
                         .whenComplete(() {
-                      showSnackBar(context, "POST UPLOADED SUCCESSFULLY");
-                      Get.toNamed(AppRoutes.newsFeedMainScreen);
-                    }).catchError(
-                            showSnackBar(context, "Something went wrong"));
+                      Dialogs.showSnackBar(context, "POST UPLOADED SUCCESSFULLY");
+                      Get.offAllNamed(AppRoutes.newsFeedMainScreen);
+                    }).onError(
+                        showSnackBar(context, "Something went wrong"));
                   },
                   child: const Text('Upload Post'),
                 ),

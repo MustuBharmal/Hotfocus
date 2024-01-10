@@ -18,6 +18,7 @@ import '../presentation/news_feed_main_screen/binding/news_feed_main_binding.dar
 import '../presentation/news_feed_main_screen/news_feed_main_screen.dart';
 import '../presentation/notifications_screen/binding/notifications_binding.dart';
 import '../presentation/notifications_screen/notifications_screen.dart';
+import '../presentation/open_camera_screen.dart';
 import '../presentation/post_full_screen/binding/post_full_binding.dart';
 import '../presentation/post_full_screen/post_full_screen.dart';
 import '../presentation/profile_settings_blocked_users_screen/binding/profile_settings_blocked_users_binding.dart';
@@ -182,7 +183,7 @@ class AppRoutes {
     ),
     GetPage(
       name: notificationsScreen,
-      page: () =>  NotificationsScreen(),
+      page: () => NotificationsScreen(),
       bindings: [
         NotificationsBinding(),
       ],
@@ -221,6 +222,10 @@ class AppRoutes {
       bindings: [
         WelcomeBinding(),
       ],
+    ),
+    GetPage(
+      name: getCameraScreen,
+      page: () => const OpenCamera(),
     )
   ];
 }

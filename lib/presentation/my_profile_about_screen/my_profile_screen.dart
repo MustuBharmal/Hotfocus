@@ -1,8 +1,13 @@
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
+import '../../core/utils/dialogs.dart';
 import '../../data/models/user.dart';
 import '../../friend_request_services.dart';
+import '../../profile_update_screen.dart';
+import '../../routes/app_routes.dart';
 import '../messages_chat_box_screen/messages_chat_box_screen.dart';
 import '/widgets/custom_build_progress_indicator_widget.dart';
 import 'package:path/path.dart';
@@ -49,7 +54,6 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
   List<DocumentSnapshot> userPostsSnapshot = List.empty();
 
   _userUpdateFun() async {
-
     _userStream = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.profileOfUser.uid)
@@ -72,7 +76,6 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
           targetUserData.get('friendRequests') ?? [];
       _hasSentRequest = friendRequests.contains(_auth.currentUser!.uid);
     });
-
   }
 
   @override
@@ -183,7 +186,14 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                                           if (_isCurrentUser) {
                                             // Current user's profile, show edit profile button
                                             return ElevatedButton(
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .push(MaterialPageRoute(
+                                                  builder: (context) {
+                                                    return ProfileUpdateScreen();
+                                                  },
+                                                ));
+                                              },
                                               child: const Text('Edit Profile'),
                                             );
                                           }
@@ -488,7 +498,17 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                                   showDialog(
                                     context: context,
                                     builder: (context) => SimpleDialog(
-                                      title: const Text('Upload Cover Photo'),
+                                      title: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text('Upload Cover Photo'),
+                                          IconButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              icon: Icon(Icons.cancel))
+                                        ],
+                                      ),
                                       children: <Widget>[
                                         SimpleDialogOption(
                                             padding: const EdgeInsets.all(20),
@@ -514,9 +534,10 @@ class ProfileAppBar extends SliverPersistentHeaderDelegate {
                                             }),
                                         SimpleDialogOption(
                                           padding: const EdgeInsets.all(20),
-                                          child: const Text("Cancel"),
+                                          child: const Text("Settings"),
                                           onPressed: () {
-                                            Navigator.pop(context);
+                                            Get.toNamed(AppRoutes
+                                                .profileSettingsScreen);
                                           },
                                         )
                                       ],
@@ -645,7 +666,7 @@ Future<void> blockUser(
   await userRef.update({
     'blocked': FieldValue.arrayUnion([blockedUserId]),
   });
-  showSnackBar(context, "You have blocked this user.");
+  Dialogs.showSnackBar(context, "You have blocked this user.");
 }
 
 Future<bool> isBlocked(String blockedUserId, String userId) async {

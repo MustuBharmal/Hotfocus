@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:like_button/like_button.dart';
 
+import '../core/utils/dialogs.dart';
 import '../presentation/news_feed_main_screen/widget/post_detail_bar.dart';
 import '../presentation/news_feed_main_screen/widget/side_action_bar.dart';
-import '../presentation/sign_up_screen/utils/utils.dart';
 import '../presentation/sub_menu_screen/sub_menu_screen.dart';
 
 class PostItem extends StatefulWidget {
@@ -126,7 +126,7 @@ class _PostItemWidget extends State<PostItem> {
         return true;
       }
     } catch (e) {
-      showSnackBar(context, "Something went wrong");
+      Dialogs.showSnackBar(context, "Something went wrong");
     }
 
     return !isLiked;

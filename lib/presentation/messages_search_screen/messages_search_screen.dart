@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hotfocus/data/models/user.dart';
 import '/data/providers/user_provider.dart';
@@ -86,42 +88,53 @@ class _MessagesSearchScreenState extends State<MessagesSearchScreen> {
 
                 return ListView.builder(
                   itemCount: snapshot.data!.docs.length,
+                  padding: EdgeInsets.only(top: size.height * .01),
+                  physics: BouncingScrollPhysics(),
                   itemBuilder: (BuildContext context, int index) {
                     UserData searchedPerson =
                         UserData.fromSnap(snapshot.data!.docs[index]);
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                                backgroundImage:
-                                    NetworkImage(searchedPerson.userProfile),
-                                radius: 20),
-                            title: Text(searchedPerson.uname,
-                                style: AppStyle.txtInterRegular18WhiteA700),
-                            //subtitle: Text(document['followers'].length),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MessagesChatBoxScreen(
-                                    searchedPerson: searchedPerson,
-                                  ),
-                                ),
-                              );
-                            },
+                    return Card(
+                      margin: EdgeInsets.symmetric(
+                          horizontal: size.width * 0.04, vertical: 5),
+                      color: Colors.grey.shade900,
+                      elevation: 0.5,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MessagesChatBoxScreen(
+                                searchedPerson: searchedPerson,
+                              ),
+                            ),
+                          );
+                        },
+                        child: ListTile(
+                          leading: ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular(size.height * .3),
+                            child: CachedNetworkImage(
+                              width: size.width * .15,
+                              height: size.height * .15,
+                              imageUrl: searchedPerson.userProfile,
+                              errorWidget: (context, url, error) =>
+                                  CircleAvatar(
+                                      child: Icon(CupertinoIcons.person)),
+                            ),
+                          ),
+                          title: Text(searchedPerson.uname,
+                              style: AppStyle.txtInterRegular18WhiteA700),
+                          subtitle: Text(
+                            ' ',
+                            maxLines: 1,
+                          ),
+                          trailing: Text(
+                            '',
                           ),
                         ),
-                        // Padding(
-                        //   padding: const EdgeInsets.only(left: 80, right: 30),
-                        //   child: SizedBox(
-                        //     width: size.width,
-                        //     height: 1,
-                        //     child: Container(color: Colors.white24),
-                        //   ),
-                        // )
-                      ],
+                      ),
                     );
                   },
                 );

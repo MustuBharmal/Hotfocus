@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:hotfocus/core/app_export.dart';
-import 'package:hotfocus/presentation/sign_up_screen/utils/utils.dart';
-import 'package:hotfocus/widgets/custom_text_form_field.dart';
+import '/core/app_export.dart';
+import '/widgets/custom_text_form_field.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../core/utils/dialogs.dart';
 import '../data/firestore_methods.dart';
 import '../data/providers/user_provider.dart';
 
@@ -33,13 +33,13 @@ class _CommentsScreenState extends State<CommentsScreen> {
       );
 
       if (res != 'success') {
-        showSnackBar(context, res);
+        Dialogs.showSnackBar(context, res);
       }
       setState(() {
         commentEditingController.text = "";
       });
     } catch (err) {
-      showSnackBar(context, err.toString());
+      Dialogs.showSnackBar(context, err.toString());
     }
   }
 

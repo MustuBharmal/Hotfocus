@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hotfocus/core/app_export.dart';
+
+import '../core/utils/date_time_utils.dart';
 
 // A MessageBubble for showing a single chat message on the ChatScreen.
 class MessageBubble extends StatelessWidget {
@@ -9,6 +12,7 @@ class MessageBubble extends StatelessWidget {
     // required this.username,
     required this.message,
     required this.isMe,
+    required this.timestamp,
   }) : isFirstInSequence = true;
 
   // Create a message bubble that continues the sequence.
@@ -16,9 +20,10 @@ class MessageBubble extends StatelessWidget {
     super.key,
     required this.message,
     required this.isMe,
+    required this.timestamp,
   })  : isFirstInSequence = false;
-        // userImage = null,
-        // username = null;
+  // userImage = null,
+  // username = null;
 
   // Whether or not this message bubble is the first in a sequence of messages
   // from the same user.
@@ -38,15 +43,15 @@ class MessageBubble extends StatelessWidget {
 
   // Controls how the MessageBubble will be aligned.
   final bool isMe;
-
+final String timestamp;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final tempTime = DateTimeExtension.getFormattedTime(context: context, time: timestamp);
     return Stack(
       children: [
         // if (userImage != null)
-      /* Positioned(
+        /* Positioned(
           top: 15,
           // Align user image to the right, if the message is from me.
           right: isMe ? 0 : null,
@@ -70,11 +75,11 @@ class MessageBubble extends StatelessWidget {
           child: Row(
             // The side of the chat screen the message should show at.
             mainAxisAlignment:
-                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
               Column(
                 crossAxisAlignment:
-                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   // First messages in the sequence provide a visual buffer at
                   // the top.
@@ -142,7 +147,21 @@ class MessageBubble extends StatelessWidget {
                   ),
                 ],
               ),
+
             ],
+          ),
+        ),
+        Positioned(
+          right:  isMe ? size.width * 0.79 : size.width * 0.05,
+          bottom: 10,
+          child: Text(
+            tempTime,
+            style: TextStyle(
+              fontSize: 10,
+              color:
+              Colors.grey.shade500,
+            ),
+            softWrap: true,
           ),
         ),
       ],

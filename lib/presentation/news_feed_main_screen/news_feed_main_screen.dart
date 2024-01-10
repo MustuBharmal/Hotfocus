@@ -31,8 +31,6 @@ class NewsFeedMainScreen extends StatefulWidget {
 class _NewsFeedMainScreenState extends State<NewsFeedMainScreen> {
   bool isAdLoaded = false;
 
-  // String uid = '';
-
   @override
   void initState() {
     Future.delayed(Duration.zero).then((value) =>
@@ -180,12 +178,7 @@ class _NewsFeedMainScreenState extends State<NewsFeedMainScreen> {
                   SpeedDialChild(
                     child: const Icon(Icons.camera_alt),
                     label: 'Post',
-                    //onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const OpenCamera()),
-                      );
-                    },
+                    onTap: () => Get.toNamed(AppRoutes.getCameraScreen),
                   ),
                   SpeedDialChild(
                     child: const Icon(Icons.notifications_none_outlined),
@@ -215,13 +208,6 @@ class _NewsFeedMainScreenState extends State<NewsFeedMainScreen> {
 
   onTapNotification() {
     Get.toNamed(AppRoutes.notificationsScreen);
-    // Navigator.of(context).push(
-    //   MaterialPageRoute(
-    //     builder: (context) {
-    //       return NotificationsPage();
-    //     },
-    //   ),
-    // );
   }
 
   onTapSearch() {
@@ -250,17 +236,19 @@ class StoryWidgetItem extends StatefulWidget {
 }
 
 class _StoryWidgetItemState extends State<StoryWidgetItem> {
-  List<Story>story = [];
+  List<Story> story = [];
+
   @override
   void initState() {
     // TODO: implement initState
-    for(var aStory in widget.stories){
-      if(aStory.uid == widget.userId){
+    for (var aStory in widget.stories) {
+      if (aStory.uid == widget.userId) {
         story.add(aStory);
       }
     }
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(

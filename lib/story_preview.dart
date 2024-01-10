@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../data/firestore_methods.dart';
 import '../data/providers/user_provider.dart';
 import '../routes/app_routes.dart';
+import 'core/utils/dialogs.dart';
 
 class StoryPreviewScreen extends StatefulWidget {
   final File file;
@@ -109,9 +110,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                       'image',
                     )
                         .whenComplete(() {
-                      showSnackBar(context, "STORY UPLOADED SUCCESSFULLY");
-                      Get.toNamed(AppRoutes.newsFeedMainScreen);
-                    }).catchError(
+                      Dialogs.showSnackBar(context, "STORY UPLOADED SUCCESSFULLY");
+                      Get.offAllNamed(AppRoutes.newsFeedMainScreen,);
+                    }).onError((error, stackTrace) =>
                             showSnackBar(context, "Something went wrong"));
                   },
                   child: const Text('Upload Story'),

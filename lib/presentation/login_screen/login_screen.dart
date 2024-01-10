@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hotfocus/core/app_export.dart';
-import 'package:hotfocus/core/utils/validation_functions.dart';
-import 'package:hotfocus/widgets/custom_text_form_field.dart';
+import '/core/app_export.dart';
+import '/core/utils/validation_functions.dart';
+import '/widgets/custom_text_form_field.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/utils/dialogs.dart';
 import '../../data/providers/user_provider.dart';
 import '../../data/resources/auth_methods.dart';
-import '../sign_up_screen/utils/utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -179,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
           email: buttonEmailController.text,
           password: buttonPasswordController.text);
       if (res == 'success') {
-        showSnackBar(context, res);
+        Dialogs.showSnackBar(context, res);
         setState(() {
           isLoading = false;
         });
@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Get.offAndToNamed(AppRoutes.newsFeedMainScreen);
       }
     } catch (err) {
-      showSnackBar(context, err.toString());
+      Dialogs.showSnackBar(context, err.toString());
       setState(() {
         isLoading = false;
       });

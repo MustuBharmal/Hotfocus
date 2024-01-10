@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
@@ -10,5 +11,10 @@ extension DateTimeExtension on DateTime {
       initializeDateFormatting(locale);
     }
     return DateFormat(pattern, locale).format(this);
+  }
+
+  static String getFormattedTime({required context, required String time}) {
+    final date = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
+    return TimeOfDay.fromDateTime(date).format(context);
   }
 }

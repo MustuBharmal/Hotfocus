@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../core/utils/dialogs.dart';
 import '/core/app_export.dart';
 import '../sign_up_screen/utils/utils.dart';
 import 'package:image_picker/image_picker.dart';
@@ -269,15 +270,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
-          showSnackBar(context, 'The password provided is too weak');
+          Dialogs.showSnackBar(context, 'The password provided is too weak');
         } else if (e.code == 'email-already-in-use') {
-          showSnackBar(context, 'The account already exists for that email');
+          Dialogs.showSnackBar(context, 'The account already exists for that email');
         } else if (e.code == 'invalid-email') {
-          showSnackBar(context, 'The email address is not valid');
+          Dialogs.showSnackBar(context, 'The email address is not valid');
         } else if (e.code == 'operation-not-allowed') {
-          showSnackBar(context, 'Error during sign up');
+          Dialogs.showSnackBar(context, 'Error during sign up');
         } else {
-          showSnackBar(context, 'Error: ${e.message}');
+          Dialogs.showSnackBar(context, 'Error: ${e.message}');
         }
       } catch (e) {
         print('Error: $e');

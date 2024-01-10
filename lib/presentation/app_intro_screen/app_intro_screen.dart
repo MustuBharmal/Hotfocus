@@ -1,18 +1,74 @@
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_button/constants.dart';
 import 'package:sign_button/create_button.dart';
 
 import '../../core/utils/color_constant.dart';
+import '../../core/utils/dialogs.dart';
 import '../../core/utils/image_constant.dart';
 import '../../core/utils/size_utils.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_style.dart';
 import '../../widgets/custom_button.dart';
-import 'controller/app_intro_controller.dart';
 
-class AppIntroScreen extends GetWidget<AppIntroController> {
+class AppIntroScreen extends StatefulWidget {
   const AppIntroScreen({super.key});
+
+  @override
+  State<AppIntroScreen> createState() => _AppIntroScreenState();
+}
+
+class _AppIntroScreenState extends State<AppIntroScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    // exit full-screen
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+    super.initState();
+  }
+
+  _handleGoogleBtnOnClick() {
+    // for showing progress bar
+    Dialogs.showProgressBar(context);
+
+    _signInWithGoogle().then((user) {
+      // for hiding progress bar
+      Navigator.pop(context);
+      log('${user.user}');
+      log('${user.additionalUserInfo}');
+      Get.offAndToNamed(AppRoutes.newsFeedMainScreen);
+    });
+  }
+
+  Future<UserCredential> _signInWithGoogle() async {
+    try {
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
+
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
+
+      // Once signed in, return the UserCredential
+      return await FirebaseAuth.instance.signInWithCredential(credential);
+    } catch (e) {
+      Dialogs.showSnackBar(context, 'Something went wrong, (Check Internet)');
+      throw ('\n signInFromGoogle $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +146,9 @@ class AppIntroScreen extends GetWidget<AppIntroController> {
                         height: 10,
                       ),
                       SignInButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _handleGoogleBtnOnClick();
+                        },
                         buttonType: ButtonType.google,
                       )
                     ]),
